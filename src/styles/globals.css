@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-start: #FFF6E9; /* light warm beige */
+  --bg-end: #FDE5C3;   /* brand primary */
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  color: theme('colors.text');
+  background: radial-gradient(1200px 800px at 20% 10%, var(--bg-start), var(--bg-end));
+}
+
+/* buttons */
+.btn {
+  @apply rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50;
+}
+.btn-primary { @apply bg-accent text-text hover:opacity-90; }
+.btn-outline { @apply border border-border text-text hover:bg-primary; }
+

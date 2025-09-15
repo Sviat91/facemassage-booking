@@ -1,0 +1,41 @@
+{
+  "name": "facemassage.net",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings=0"
+  },
+  "dependencies": {
+    "@sentry/nextjs": "^8.26.0",
+    "@tanstack/react-query": "^5.51.20",
+    "@upstash/redis": "^1.33.2",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
+    "googleapis": "^140.0.1",
+    "i18next": "^23.10.1",
+    "next": "^14.2.6",
+    "pino": "^9.4.0",
+    "react": "^18.3.1",
+    "react-day-picker": "^9.5.0",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "react-i18next": "^14.1.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.6",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4"
+  }
+}
+
