@@ -1,5 +1,5 @@
 import { format, addDays } from 'date-fns'
-import { utcToZonedTime } from 'date-fns-tz'
+import { toZonedTime } from 'date-fns-tz'
 import { readExceptions, readWeekly } from './google/sheets'
 import { freeBusy } from './google/calendar'
 
@@ -50,8 +50,8 @@ export async function getAvailableDays(fromISO: string, untilISO: string, minDur
   // bucket busy by date in Warsaw TZ
   const busyByDate = new Map<string, Range[]>()
   for (const b of busy) {
-    const s = utcToZonedTime(new Date(b.start), TZ)
-    const e = utcToZonedTime(new Date(b.end), TZ)
+    const s = toZonedTime(new Date(b.start), TZ)
+    const e = toZonedTime(new Date(b.end), TZ)
     const day = isoDate(s)
     const start = s.getHours() * 60 + s.getMinutes()
     const end = e.getHours() * 60 + e.getMinutes()
@@ -87,4 +87,3 @@ export async function getAvailableDays(fromISO: string, untilISO: string, minDur
   }
   return { days }
 }
-

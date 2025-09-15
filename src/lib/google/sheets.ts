@@ -21,30 +21,59 @@ type Procedure = {
 
 function parseProcedures(rows: any[][]): Procedure[] {
   if (!rows.length) return []
-  const [header, ...rest] = rows
-  const idx = (k: string) => header.findIndex(h => String(h).trim().toLowerCase() === k)
+  const [headerRaw, ...rest] = rows
+  const header = headerRaw.map(h => String(h ?? '').trim().toLowerCase())
+
+  const find = (re: RegExp) => header.findIndex(h => re.test(h))
   const gi = {
-    id: idx('id'),
-    name_pl: idx('name_pl'),
-    name_ru: idx('name_ru'),
-    category: idx('category'),
-    duration_min: idx('duration_min'),
-    price_pln: idx('price_pln'),
-    is_active: idx('is_active'),
-    order: idx('order'),
+    id: find(/^id$/),
+    name_pl: (() => {
+      const i = find(/name.*procedure|name_pl|name|nazwa/)
+      return i
+    })(),
+    name_ru: find(/name_ru/),
+    category: find(/category|kategoria/),
+    duration_min: (() => {
+      const i = find(/duration|czas|min/)
+      return i
+    })(),
+    price_pln: find(/price|pln|cena/),
+    is_active: find(/is.?active|active|aktyw/),
+    order: find(/order|sort/),
   }
-  const asBool = (v: any) => String(v ?? '').trim().toLowerCase() === 'yes' || String(v ?? '').trim() === '1' || String(v ?? '').trim().toLowerCase() === 'true'
+
+  const asBool = (v: any) => {
+    const s = String(v ?? '').trim().toLowerCase()
+    return s === 'yes' || s === '1' || s === 'true' || s === 'y'
+  }
+  const parseDuration = (v: any) => {
+    const s = String(v ?? '').trim()
+    if (/^\d{1,2}:\d{1,2}(:\d{1,2})?$/.test(s)) {
+      const [h, m] = s.split(':').map(Number); return h * 60 + m
+    }
+    const num = parseInt(s.replace(/\D/g, ''), 10)
+    return Number.isFinite(num) && num > 0 ? num : 30
+  }
   const asNum = (v: any) => Number.parseInt(String(v ?? '').replace(/\D/g, ''), 10) || 0
-  return rest.map(r => ({
-    id: String(r[gi.id] ?? ''),
-    name_pl: String(r[gi.name_pl] ?? ''),
-    name_ru: r[gi.name_ru] ? String(r[gi.name_ru]) : undefined,
-    category: r[gi.category] ? String(r[gi.category]) : undefined,
-    duration_min: asNum(r[gi.duration_min] ?? 30),
-    price_pln: r[gi.price_pln] != null ? asNum(r[gi.price_pln]) : undefined,
-    is_active: asBool(r[gi.is_active] ?? 'Yes'),
-    order: r[gi.order] != null ? asNum(r[gi.order]) : undefined,
-  }))
+
+  const out: Procedure[] = []
+  rest.forEach((r, idxRow) => {
+    const name = gi.name_pl >= 0 ? String(r[gi.name_pl] ?? '').trim() : ''
+    const duration = gi.duration_min >= 0 ? parseDuration(r[gi.duration_min]) : 30
+    if (!name) return // skip empty
+    const id = (gi.id >= 0 ? String(r[gi.id] ?? '').trim() : `${name}-${duration}`).slice(0, 100)
+    out.push({
+      id,
+      name_pl: name,
+      name_ru: gi.name_ru >= 0 ? String(r[gi.name_ru] ?? '') : undefined,
+      category: gi.category >= 0 ? String(r[gi.category] ?? '') : undefined,
+      duration_min: duration,
+      price_pln: gi.price_pln >= 0 ? asNum(r[gi.price_pln]) : undefined,
+      is_active: gi.is_active >= 0 ? asBool(r[gi.is_active]) : true,
+      order: gi.order >= 0 ? asNum(r[gi.order]) : idxRow + 1,
+    })
+  })
+  return out
 }
 
 // Weekly schedule: columns like [Weekday, Working Hours, Is Day Off]
@@ -103,4 +132,3 @@ export async function readExceptions(): Promise<ExceptionsMap> {
   }
   return ex
 }
-
