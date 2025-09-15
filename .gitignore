@@ -16,7 +16,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Env
-.env
+# keep .env tracked for now per request
 .env.*
 .env.local
 .env.*.local
@@ -30,4 +30,3 @@ pnpm-debug.log*
 # Local-only docs
 PLAN.MD
 TASK.md
-
