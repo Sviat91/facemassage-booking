@@ -1,17 +1,38 @@
-import Image from 'next/image'
+import BrandHeader from '../components/BrandHeader'
+import Card from '../components/ui/Card'
+import ProcedureSelect from '../components/ProcedureSelect'
+import DayCalendar from '../components/DayCalendar'
 
 export default function Page() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
-      <Image src="/logo.png" alt="logo" width={120} height={120} priority />
-      <h1 className="text-2xl md:text-3xl font-semibold">Book your session</h1>
-      <p className="text-muted max-w-prose text-center">
-        Minimal skeleton ready. Next step: connect Google Sheets and render procedures + calendar.
-      </p>
-      <div className="flex gap-3">
-        <a className="btn btn-primary" href="/api/health">API health</a>
+    <main className="min-h-screen p-6">
+      <div className="mx-auto max-w-5xl">
+        <BrandHeader />
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-7">
+            <Card title="Time">
+              <DayCalendar />
+            </Card>
+          </div>
+          <div className="col-span-5">
+            <div className="space-y-4">
+              <Card title="Service">
+                <ProcedureSelect />
+              </Card>
+              <Card title="Contact">
+                <div className="grid grid-cols-2 gap-3">
+                  <input className="rounded-xl border border-border bg-white/80 px-3 py-2" placeholder="Name" />
+                  <input className="rounded-xl border border-border bg-white/80 px-3 py-2" placeholder="Phone" />
+                </div>
+                <button className="btn btn-primary mt-4">Submit</button>
+              </Card>
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 text-center">
+          <a className="btn btn-outline" href="/api/health">API health</a>
+        </div>
       </div>
     </main>
   )
 }
-

@@ -47,3 +47,60 @@ function parseProcedures(rows: any[][]): Procedure[] {
   }))
 }
 
+// Weekly schedule: columns like [Weekday, Working Hours, Is Day Off]
+export type DayRange = { start: string; end: string }
+export type WeeklyMap = Record<string, { hours: string; isDayOff: boolean }>
+
+export async function readWeekly(): Promise<WeeklyMap> {
+  const { sheets } = getClients()
+  const range = `${config.SHEET_TABS.WEEKLY}!A1:Z1000`
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId: config.GOOGLE_SHEET_ID, range })
+  const rows = res.data.values ?? []
+  if (!rows.length) return {}
+  const [header, ...items] = rows
+  const idx = (key: string) => header.findIndex(h => String(h).toLowerCase().includes(key))
+  const gi = {
+    weekday: idx('week'),
+    hours: idx('work'),
+    dayoff: idx('day off'),
+  }
+  const isYes = (v: any) => String(v ?? '').trim().toLowerCase().includes('yes') || String(v ?? '').trim() === '1' || String(v ?? '').trim().toLowerCase() === 'true'
+  const norm = (s: any) => String(s ?? '').replace(/\u00A0/g, ' ').trim().toLowerCase()
+  const weekly: WeeklyMap = {}
+  for (const r of items) {
+    const k = norm(r[gi.weekday]) // monday, ...
+    if (!k) continue
+    weekly[k] = {
+      hours: String(r[gi.hours] ?? '').trim(),
+      isDayOff: isYes(r[gi.dayoff]),
+    }
+  }
+  return weekly
+}
+
+export type ExceptionsMap = Record<string, { hours: string; isDayOff: boolean }>
+
+export async function readExceptions(): Promise<ExceptionsMap> {
+  const { sheets } = getClients()
+  const range = `${config.SHEET_TABS.EXCEPTIONS}!A1:Z1000`
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId: config.GOOGLE_SHEET_ID, range })
+  const rows = res.data.values ?? []
+  if (!rows.length) return {}
+  const [header, ...items] = rows
+  const idx = (key: string) => header.findIndex(h => String(h).toLowerCase().includes(key))
+  const gi = {
+    date: idx('date'),
+    hours: idx('work'),
+    dayoff: idx('day off'),
+  }
+  const isYes = (v: any) => String(v ?? '').trim().toLowerCase().includes('yes') || String(v ?? '').trim() === '1' || String(v ?? '').trim().toLowerCase() === 'true'
+  const normDate = (s: any) => String(s ?? '').trim().slice(0, 10)
+  const ex: ExceptionsMap = {}
+  for (const r of items) {
+    const d = normDate(r[gi.date])
+    if (!d) continue
+    ex[d] = { hours: String(r[gi.hours] ?? '').trim(), isDayOff: isYes(r[gi.dayoff]) }
+  }
+  return ex
+}
+
