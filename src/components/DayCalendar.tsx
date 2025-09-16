@@ -19,6 +19,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
 
   const { data } = useQuery({
     queryKey: ['availability', procedureId],
+    enabled: !!procedureId, // подсветку дней делаем только после выбора процедуры
     queryFn: async () => {
       const qs = new URLSearchParams({ from: toISO(today), until: toISO(until) })
       if (procedureId) qs.set('procedureId', procedureId)
@@ -34,6 +35,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
   const isDisabled = (day: Date) => {
     const iso = toISO(day)
     if (day < today) return true
+    if (!procedureId) return true // до выбора услуги все дни отключены
     return !set.has(iso)
   }
 

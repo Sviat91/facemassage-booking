@@ -12,7 +12,7 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
 
   const { data, isFetching, error } = useQuery({
     queryKey: ['day-slots', dateISO, procedureId],
-    enabled: !!dateISO,
+    enabled: !!dateISO && !!procedureId,
     queryFn: async () => {
       if (!dateISO) return { slots: [] }
       const qs = new URLSearchParams()
@@ -27,6 +27,7 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
   const slots = useMemo(() => (data?.slots ?? []) as { startISO: string; endISO: string }[], [data])
 
   if (!dateISO) return <div className="text-sm text-muted-foreground">Выберите дату</div>
+  if (!procedureId) return <div className="text-sm text-muted-foreground">Сначала выберите услугу</div>
   if (isFetching) return <div className="text-sm text-muted-foreground">Загрузка слотов…</div>
   if (error) return <div className="text-sm text-red-600">Ошибка загрузки слотов</div>
   if (!slots.length) return <div className="text-sm text-muted-foreground">Нет доступных слотов</div>
