@@ -141,10 +141,20 @@ export async function getDaySlots(dateISO: string, minDuration: number, stepMin:
 
   const free = minusBusy(open, busyRanges)
 
+  // If the requested date is today (in Warsaw), hide past slots:
+  // allow only starts from the next full hour.
+  let minStartMin = 0
+  const nowLocal = toZonedTime(new Date(), TZ)
+  const todayISO = isoDate(nowLocal)
+  if (dateISO === todayISO) {
+    minStartMin = (nowLocal.getHours() + 1) * 60
+  }
+
   // Build slots with step alignment
   const slots: { startISO: string; endISO: string }[] = []
   for (const r of free) {
-    let start = Math.ceil(r.start / stepMin) * stepMin
+    const windowStart = Math.max(r.start, minStartMin)
+    let start = Math.ceil(windowStart / stepMin) * stepMin
     while (start + minDuration <= r.end) {
       const end = start + minDuration
       const hhS = String(Math.floor(start / 60)).padStart(2, '0')
