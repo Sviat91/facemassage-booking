@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDaySlots } from '../../../../lib/availability'
 import { readProcedures } from '../../../../lib/google/sheets'
 import { cacheGet, cacheSet } from '../../../../lib/cache'
+import { getLogger } from '../../../../lib/logger'
+import { reportError } from '../../../../lib/sentry'
 
 export const runtime = 'nodejs'
+
+const log = getLogger({ module: 'api.day' })
 
 function isValidISODate(s: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(s)
@@ -27,19 +31,23 @@ async function computeMinDuration(procedureId?: string | null) {
 }
 
 export async function GET(req: NextRequest, ctx: { params: { date: string } }) {
+  const date = ctx.params?.date ?? null
+  let procedureId: string | null = null
+
   try {
-    const date = ctx.params?.date
     if (!date || !isValidISODate(date)) {
+      log.warn({ date }, 'Invalid date supplied to day slots route')
       return NextResponse.json({ error: 'Invalid date. Expected YYYY-MM-DD' }, { status: 400 })
     }
 
     const { searchParams } = new URL(req.url)
-    const procedureId = searchParams.get('procedureId')
+    procedureId = searchParams.get('procedureId')
 
     const minDuration = await computeMinDuration(procedureId)
     const cacheKey = `day:v1:${date}:${minDuration}`
     let payload = await cacheGet<{ slots: { startISO: string; endISO: string }[] }>(cacheKey)
     if (!payload) {
+      log.debug({ date, procedureId, minDuration }, 'Cache miss for day slots')
       payload = await getDaySlots(date, minDuration)
       await cacheSet(cacheKey, payload, 30)
     }
@@ -48,7 +56,11 @@ export async function GET(req: NextRequest, ctx: { params: { date: string } }) {
     res.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=10')
     return res
   } catch (err: any) {
+    log.error({ err, date, procedureId }, 'Failed to compute day slots')
+    await reportError(err, {
+      tags: { module: 'api.day' },
+      extras: { date, procedureId },
+    })
     return NextResponse.json({ error: 'Failed to compute day slots', details: String(err?.message || err) }, { status: 500 })
   }
 }
-

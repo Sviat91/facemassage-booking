@@ -44,9 +44,6 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <div className="mt-6 text-center">
-          <a className="btn btn-outline" href="/api/health">API health</a>
-        </div>
       </div>
     </main>
   )

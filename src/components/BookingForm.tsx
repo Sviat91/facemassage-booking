@@ -36,7 +36,7 @@ export default function BookingForm({
     }
     // render widget when available
     const iv = setInterval(() => {
-      // @ts-ignore
+      // @ts-ignore -- Turnstile render helper lacks type definitions
       const t = (window as any).turnstile
       if (t && tsRef.current) {
         try {
@@ -110,9 +110,6 @@ export default function BookingForm({
         <input className="w-full rounded-xl border border-border bg-white/80 px-3 py-2" placeholder="Email (по желанию)" value={email} onChange={e => setEmail(e.target.value)} />
       </div>
       {siteKey && <div ref={tsRef} className="mt-3" />}
-      {process.env.NODE_ENV !== 'production' && (
-        <div className="mt-2 text-xs text-muted-foreground">TS debug: key={String(!!siteKey)} token={String(!!tsToken)}</div>
-      )}
       {err && <div className="mt-3 text-sm text-red-600">{err}</div>}
       <button disabled={!canSubmit} onClick={submit} className={`btn btn-primary mt-4 w-full ${!canSubmit ? 'opacity-60 pointer-events-none' : ''}`}>
         {loading ? 'Отправка…' : 'Забронировать'}

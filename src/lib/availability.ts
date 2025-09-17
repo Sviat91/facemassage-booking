@@ -10,7 +10,7 @@ type Range = { start: number; end: number } // minutes in day
 const t2m = (t: string) => {
   const s = String(t || '').trim()
   // Support both HH:MM and HH.MM
-  const m = s.match(/^(\d{1,2})[:\.](\d{2})$/)
+  const m = s.match(/^(\d{1,2})[.:](\d{2})$/)
   if (!m) return NaN
   const h = Number(m[1])
   const mm = Number(m[2])
