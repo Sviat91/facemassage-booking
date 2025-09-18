@@ -1,6 +1,6 @@
 "use client"
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, MouseEvent } from 'react'
 
 type Procedure = { id: string; name_pl: string; duration_min: number }
 
@@ -26,8 +26,19 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
     })
   }, [valueId, items])
 
+  const handleCardClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      if (open) {
+        setOpen(false)
+      } else if (selected) {
+        setSelected(null)
+        onChange?.(null)
+      }
+    }
+  }
+
   return (
-    <div className="relative">
+    <div className="relative -m-4 p-4" onClick={handleCardClick}>
       <label className="block text-sm text-muted">Service</label>
       <button
         type="button"
