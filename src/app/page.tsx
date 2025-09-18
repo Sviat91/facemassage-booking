@@ -13,11 +13,19 @@ export default function Page() {
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [selectedSlot, setSelectedSlot] = useState<{ startISO: string; endISO: string } | null>(null)
   return (
-    <main className="min-h-screen p-6">
+    <main className="min-h-screen p-6 relative">
+      {/* фиксированный логотип в левом верхнем углу */}
+      <div className="absolute left-4 top-4 z-10">
+        <Image
+          src="/head_logo.png"
+          alt="Somique beauty logo"
+          width={242}  // +~10%
+          height={97}
+          className="h-auto"
+        />
+      </div>
+      {/* основной центрированный контейнер */}
       <div className="mx-auto max-w-5xl">
-        <div className="mt-6">
-          <Image src="/head_logo.png" alt="Massage logo" width={220} height={88} className="h-auto" priority />
-        </div>
         <BrandHeader />
         <div className="mt-8 grid gap-6 lg:grid-cols-[360px_minmax(0,_1fr)]">
           <Card className="max-w-md lg:max-w-none">
