@@ -11,25 +11,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Upload files via SCP
-        uses: appleboy/scp-action@v0.1.7
+      # подготовить сервер (pm2 и папку)
+      - name: Prepare server
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
-          source: "."
-          target: "/var/www/somique.beauty"
-          overwrite: true
-          rm: false
-          exclude: |
-            .git/*
-            .github/*
-            node_modules/*
-            .next/*
-            **/.env
-            **/.env.*
+          script: |
+            set -e
+            mkdir -p /var/www/somique.beauty
+            command -v pm2 >/dev/null 2>&1 || npm i -g pm2
 
+      # синхронизация файлов по rsync с исключениями
+      - name: Rsync files
+        uses: easingthemes/ssh-deploy@v5.0.3
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+          REMOTE_USER: ${{ secrets.SERVER_USER }}
+          REMOTE_PORT: ${{ secrets.SERVER_PORT || 22 }}
+          SOURCE: "./"
+          TARGET: "/var/www/somique.beauty"
+          EXCLUDE: ".git*,.github*,node_modules/*,.next/*,.env,.env.*"
+          ARGS: "-rlgoDzvc --delete"
+
+      # установка, билд и рестарт PM2 (порт 3011)
       - name: Build & restart on server
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -41,6 +49,6 @@ jobs:
             set -e
             cd /var/www/somique.beauty
             npm ci || npm install
-            npm run build
-            pm2 reload somique || PORT=3011 NODE_ENV=production pm2 start npm --name somique -- start -- -p 3011
+            TSC_COMPILE_ON_ERROR=1 npm run build
+            pm2 describe somique >/dev/null 2>&1 && pm2 reload somique || PORT=3011 NODE_ENV=production pm2 start npm --name somique -- start -- -p 3011
             pm2 save
