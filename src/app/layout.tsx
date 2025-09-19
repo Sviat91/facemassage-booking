@@ -1,19 +1,38 @@
 import '../styles/globals.css'
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Providers from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'Facemassage — Rezerwacja',
-  description: 'Szybka rezerwacja wizyty. 90 dni do przodu.',
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const metadataTitle = 'Facemassage — Rezerwacja'
+const metadataDescription = 'Szybka rezerwacja wizyty. 90 dni do przodu.'
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: metadataTitle,
+  description: metadataDescription,
   icons: {
     icon: '/logo.png',
     shortcut: '/logo.png',
     apple: '/logo.png',
   },
-} as const
+  openGraph: {
+    type: 'website',
+    url: '/',
+    title: metadataTitle,
+    description: metadataDescription,
+    images: [{ url: '/prev.png' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: metadataTitle,
+    description: metadataDescription,
+    images: ['/prev.png'],
+  },
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
