@@ -14,8 +14,8 @@ export default function Page() {
   const [selectedSlot, setSelectedSlot] = useState<{ startISO: string; endISO: string } | null>(null)
   return (
     <main className="min-h-screen p-6 relative">
-      {/* фиксированный логотип в левом верхнем углу */}
-      <div className="absolute left-4 top-4 z-10">
+      {/* фиксированный логотип в левом верхнем углу - скрыт на мобильных */}
+      <div className="absolute left-4 top-4 z-10 hidden lg:block">
         <Image
           src="/head_logo.png"
           alt="Logo Somique Beauty"
