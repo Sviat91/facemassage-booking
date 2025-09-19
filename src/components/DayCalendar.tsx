@@ -126,7 +126,10 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
   }
 
   const CustomCaption = ({ displayMonth }: CaptionProps) => {
-    const label = displayMonth.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })
+    const rawLabel = displayMonth.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })
+    const label = rawLabel
+      ? `${rawLabel.charAt(0).toLocaleUpperCase('pl-PL')}${rawLabel.slice(1)}`
+      : rawLabel
     const [stage, setStage] = useState<'enterStart' | 'enterEnd'>('enterEnd')
     const mountedRef = useRef(false)
 
@@ -166,7 +169,9 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
         <div className="relative flex-1 text-center" onClick={(event) => event.stopPropagation()}>
           <div className="h-6 overflow-hidden">
             <span
-              className={`inline-block text-base font-medium capitalize text-neutral-800 transition-all duration-300 ease-out ${stage === 'enterStart' ? enterClass : finalClass}`}
+              className={`inline-block text-base font-medium text-neutral-800 transition-all duration-300 ease-out ${
+                stage === 'enterStart' ? enterClass : finalClass
+              }`}
             >
               {label}
             </span>
