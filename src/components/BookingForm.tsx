@@ -118,31 +118,31 @@ export default function BookingForm({
   if (ok) {
     return (
       <div className="transition-all duration-300 ease-out">
-        <div className="text-lg font-medium mb-2">Rezerwacja potwierdzona</div>
-        <div className="text-sm text-neutral-600">Usługa: {selectedProcedureName ?? 'Brak danych'}</div>
-        <div className="text-sm text-neutral-600">Termin: {terminLabel}</div>
-        <div className="mt-3 text-emerald-700">Dziękujemy, do zobaczenia!</div>
+        <div className="text-lg font-medium mb-2 dark:text-dark-text">Rezerwacja potwierdzona</div>
+        <div className="text-sm text-neutral-600 dark:text-dark-muted">Usługa: {selectedProcedureName ?? 'Brak danych'}</div>
+        <div className="text-sm text-neutral-600 dark:text-dark-muted">Termin: {terminLabel}</div>
+        <div className="mt-3 text-emerald-700 dark:text-emerald-400">Dziękujemy, do zobaczenia!</div>
       </div>
     )
   }
 
   return (
     <div className={"transition-all duration-300 ease-out transform opacity-100 translate-y-0"}>
-      <div className="mb-2 text-sm text-neutral-600">Aby zakończyć rezerwację, uzupełnij dane:</div>
-      <div className="mb-3 text-[15px]"><span className="font-medium">Wybrany czas:</span> {label}</div>
+      <div className="mb-2 text-sm text-neutral-600 dark:text-dark-muted">Aby zakończyć rezerwację, uzupełnij dane:</div>
+      <div className="mb-3 text-[15px] dark:text-dark-text"><span className="font-medium">Wybrany czas:</span> {label}</div>
       <div className="grid grid-cols-2 gap-3">
-        <input className="rounded-xl border border-border bg-white/80 px-3 py-2" placeholder="Imię i nazwisko" value={name} onChange={e => setName(e.target.value)} />
-        <input className="rounded-xl border border-border bg-white/80 px-3 py-2" placeholder="Telefon" value={phone} onChange={e => setPhone(e.target.value)} />
+        <input className="rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="Imię i nazwisko" value={name} onChange={e => setName(e.target.value)} />
+        <input className="rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="Telefon" value={phone} onChange={e => setPhone(e.target.value)} />
       </div>
       <div className="mt-3">
-        <input className="w-full rounded-xl border border-border bg-white/80 px-3 py-2" placeholder="E-mail (opcjonalnie)" value={email} onChange={e => setEmail(e.target.value)} />
+        <input className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="E-mail (opcjonalnie)" value={email} onChange={e => setEmail(e.target.value)} />
       </div>
       {siteKey && (
         <div className="mt-3">
           <div ref={tsRef} className="rounded-xl" />
         </div>
       )}
-        {err && <div className="mt-3 text-sm text-red-600">{err}</div>}
+        {err && <div className="mt-3 text-sm text-red-600 dark:text-red-400">{err}</div>}
         <button disabled={!canSubmit} onClick={submit} className={`btn btn-primary mt-4 w-full ${!canSubmit ? 'opacity-60 pointer-events-none' : ''}`}>
           {loading ? 'Wysyłanie…' : 'Zarezerwuj'}
         </button>

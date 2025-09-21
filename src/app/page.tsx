@@ -7,6 +7,7 @@ import ProcedureSelect from '../components/ProcedureSelect'
 import DayCalendar from '../components/DayCalendar'
 import SlotsList from '../components/SlotsList'
 import BookingForm from '../components/BookingForm'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function Page() {
   const [procId, setProcId] = useState<string | undefined>(undefined)
@@ -73,6 +74,7 @@ export default function Page() {
   }, [selectedSlot, userScrolled])
   return (
     <main className="min-h-screen p-6 relative">
+      <ThemeToggle />
       {/* фиксированный логотип в левом верхнем углу - скрыт на мобильных */}
       <div className="absolute left-4 top-4 z-10 hidden lg:block">
         <Image

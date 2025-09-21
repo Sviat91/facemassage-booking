@@ -7,6 +7,11 @@
   --bg-end: #FDE5C3;   /* brand primary */
 }
 
+.dark {
+  --bg-start: #9c6849; /* dark theme background */
+  --bg-end: #7A4F35;   /* darker variant */
+}
+
 html, body {
   height: 100%;
 }
@@ -14,12 +19,17 @@ html, body {
 body {
   color: theme('colors.text');
   background: radial-gradient(1200px 800px at 20% 10%, var(--bg-start), var(--bg-end));
+  transition: background 0.3s ease;
+}
+
+.dark body {
+  color: theme('colors.dark-text');
 }
 
 /* buttons */
 .btn {
   @apply rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50;
 }
-.btn-primary { @apply bg-accent text-text hover:opacity-90; }
-.btn-outline { @apply border border-border text-text hover:bg-primary; }
+.btn-primary { @apply bg-accent text-text hover:opacity-90 dark:bg-accent dark:text-dark-text; }
+.btn-outline { @apply border border-border text-text hover:bg-primary dark:border-dark-border dark:text-dark-text dark:hover:bg-dark-card; }
 
