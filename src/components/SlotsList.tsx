@@ -37,21 +37,21 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
 
   return (
     <div>
-      {!procedureId && <div className="text-sm text-neutral-500">Najpierw wybierz usługę</div>}
-      {procedureId && !dateISO && <div className="text-sm text-neutral-500">Wybierz datę</div>}
+      {!procedureId && <div className="text-sm text-neutral-500 dark:text-dark-muted">Najpierw wybierz usługę</div>}
+      {procedureId && !dateISO && <div className="text-sm text-neutral-500 dark:text-dark-muted">Wybierz datę</div>}
       <div className={`relative overflow-x-hidden transition-[max-height,opacity] duration-300 ease-out ${panelState}`}>
-        <div className={`relative rounded-2xl border border-neutral-200 bg-white/80 p-4 ${ready ? 'max-h-[24rem]' : ''}`}>
+        <div className={`relative rounded-2xl border border-neutral-200 bg-white/80 p-4 dark:bg-dark-card/80 dark:border-dark-border ${ready ? 'max-h-[24rem]' : ''}`}>
           {ready && (
             <>
               {isFetching && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm dark:bg-dark-card/80">
                   <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-500" />
-                  <p className="mt-3 text-sm font-medium text-neutral-600">Wyszukujemy wolne godziny…</p>
+                  <p className="mt-3 text-sm font-medium text-neutral-600 dark:text-dark-text">Wyszukujemy wolne godziny…</p>
                 </div>
               )}
-              {error && <div className="text-sm text-red-600">Błąd ładowania terminów</div>}
+              {error && <div className="text-sm text-red-600 dark:text-red-400">Błąd ładowania terminów</div>}
               {!error && slots.length === 0 && !isFetching && (
-                <div className="text-sm text-neutral-500">Brak dostępnych terminów</div>
+                <div className="text-sm text-neutral-500 dark:text-dark-muted">Brak dostępnych terminów</div>
               )}
               {!error && slots.length > 0 && (
                 <div className="grid max-h-[18rem] grid-cols-2 gap-2 overflow-y-auto pr-1">
