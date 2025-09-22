@@ -1,6 +1,7 @@
 "use client"
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import PhoneInput from './ui/PhoneInput'
 
 export type Slot = { startISO: string; endISO: string }
 
@@ -69,7 +70,11 @@ export default function BookingForm({
   }, [siteKey])
 
   const canSubmit = useMemo(() => {
-    const basic = name.trim().length >= 2 && phone.trim().length >= 5 && !loading
+    // Validate phone format: should have country code + at least 6 digits
+    const phoneDigits = phone.replace(/\D/g, '')
+    const hasValidPhone = phoneDigits.length >= 9 // country code (2-3 digits) + phone (6+ digits)
+    
+    const basic = name.trim().length >= 2 && hasValidPhone && !loading
     return siteKey ? basic && !!tsToken : basic
   }, [name, phone, loading, siteKey, tsToken])
   const timeFormatter = useMemo(
@@ -130,11 +135,14 @@ export default function BookingForm({
     <div className={"transition-all duration-300 ease-out transform opacity-100 translate-y-0"}>
       <div className="mb-2 text-sm text-neutral-600 dark:text-dark-muted">Aby zakończyć rezerwację, uzupełnij dane:</div>
       <div className="mb-3 text-[15px] dark:text-dark-text"><span className="font-medium">Wybrany czas:</span> {label}</div>
-      <div className="grid grid-cols-2 gap-3">
-        <input className="rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="Imię i nazwisko" value={name} onChange={e => setName(e.target.value)} />
-        <input className="rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="Telefon" value={phone} onChange={e => setPhone(e.target.value)} />
-      </div>
-      <div className="mt-3">
+      <div className="space-y-3">
+        <input className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="Imię i nazwisko" value={name} onChange={e => setName(e.target.value)} />
+        <PhoneInput 
+          value={phone} 
+          onChange={setPhone} 
+          placeholder="Telefon"
+          error={err && err.includes('telefon') ? err : undefined}
+        />
         <input className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" placeholder="E-mail (opcjonalnie)" value={email} onChange={e => setEmail(e.target.value)} />
       </div>
       {siteKey && (
