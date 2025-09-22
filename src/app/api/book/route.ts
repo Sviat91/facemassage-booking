@@ -70,18 +70,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Duplicate booking in progress', code: 'DUPLICATE' }, { status: 409 })
     }
 
-    let summary = `Booking: ${booking.name}`
+    // Get procedure details for new format
+    let summary = `Booking: ${booking.name}` // fallback if no procedure
+    let procedureName = ''
+    let price = 0
+    
     if (booking.procedureId) {
       try {
         const procs = await readProcedures()
         const proc = procs.find(p => p.id === booking.procedureId)
-        if (proc) summary = `${proc.name_pl} \u0007 ${booking.name}`
+        if (proc) {
+          summary = proc.name_pl // Use only procedure name as title
+          procedureName = proc.name_pl
+          price = proc.price_pln || 0
+        }
       } catch (err) {
         log.warn({ err }, 'Failed to enrich booking summary with procedure name')
       }
     }
 
-    const description = `Phone: ${booking.phone}${booking.email ? `\nEmail: ${booking.email}` : ''}`
+    // Split name into first and last name (at first space)
+    const nameParts = booking.name.trim().split(' ')
+    const firstName = nameParts[0] || ''
+    const lastName = nameParts.slice(1).join(' ') || ''
+
+    // Create structured description in new format
+    const description = `Imię Nazwisko: ${firstName} ${lastName}
+Telefon: ${booking.phone}${booking.email ? `\nEmail: ${booking.email}` : ''}
+Cena: ${price}zł
+---
+Utworzono: ${new Date().toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' })}`
 
     const ev = await createEvent({ startISO: booking.startISO, endISO: booking.endISO, summary, description })
     log.info({ ip, startISO: booking.startISO, endISO: booking.endISO, eventId: ev.id }, 'Booking created successfully')
