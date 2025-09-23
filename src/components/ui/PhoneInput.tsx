@@ -186,8 +186,8 @@ export default function PhoneInput({
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <div className="flex">
+    <div className="relative w-full" ref={dropdownRef}>
+      <div className="flex w-full">
         {/* Country selector */}
         <div className="flex items-center gap-2 px-3 py-2 rounded-l-xl border border-r-0 border-border bg-white/80 dark:bg-dark-card/80 dark:border-dark-border hover:bg-white dark:hover:bg-dark-card transition-all duration-200">
           <span className="text-lg">{isCustomMode ? '🌍' : selectedCountry?.flag}</span>
@@ -235,7 +235,7 @@ export default function PhoneInput({
           placeholder={placeholder}
           disabled={disabled}
           className={`
-            flex-1 px-3 py-2 rounded-r-xl border border-border 
+            flex-1 min-w-0 px-3 py-2 rounded-r-xl border border-border 
             bg-white/80 dark:bg-dark-card/80 dark:border-dark-border 
             dark:text-dark-text dark:placeholder-dark-muted
             focus:outline-none focus:ring-2 focus:ring-primary/20
@@ -248,7 +248,7 @@ export default function PhoneInput({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl shadow-lg max-h-60 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl shadow-lg max-h-60 overflow-hidden max-w-full">
           <div className="p-2 border-b border-border dark:border-dark-border">
             <input
               type="text"
