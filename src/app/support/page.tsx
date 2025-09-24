@@ -166,7 +166,7 @@ export default function SupportPage() {
                   <div>
                     <h4 className="font-medium text-text dark:text-dark-text">Adres</h4>
                     <p className="text-sm text-neutral-600 dark:text-dark-muted">
-                      Herbu Janina 3a/40<br />
+                      Sarmacka 4B/ lokal 106<br />
                       02-972 Warszawa
                     </p>
                   </div>

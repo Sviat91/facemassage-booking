@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import { formatInTimeZone } from 'date-fns-tz'
 import { config } from '../env'
 import { getClients } from './auth'
 
@@ -173,9 +174,18 @@ export interface UserConsent {
 }
 
 const PHONE_MASK_SALT = 'gdpr_withdraw_salt_v1'
+const WARSAW_TZ = 'Europe/Warsaw'
+
+function nowInWarsawISO(date: Date = new Date()): string {
+  return formatInTimeZone(date, WARSAW_TZ, "yyyy-MM-dd'T'HH:mm:ssXXX")
+}
+
+function normalizePhoneForSheet(phone: string): string {
+  return String(phone ?? '').replace(/\D/g, '')
+}
 
 function maskPhoneHash(phone: string): string {
-  const normalized = phone.replace(/\D/g, '') || 'unknown'
+  const normalized = normalizePhoneForSheet(phone) || 'unknown'
   return createHash('sha256')
     .update(PHONE_MASK_SALT)
     .update(':')
@@ -232,11 +242,11 @@ function hashIpPartially(ip: string): string {
 export async function saveUserConsent(consent: Omit<UserConsent, 'consentDate' | 'ipHash'> & { ip: string }): Promise<void> {
   const { sheets } = getClients()
   
-  const now = new Date().toISOString()
+  const now = nowInWarsawISO()
   const ipHash = hashIpPartially(consent.ip)
   
   // Normalize phone for consistent storage (remove + and spaces)
-  const normalizedPhone = consent.phone.replace(/[\s\+\-\(\)]/g, '')
+  const normalizedPhone = normalizePhoneForSheet(consent.phone)
   
   const values = [
     [
@@ -273,12 +283,54 @@ function normalizeName(name: string): string {
 /**
  * Find existing consent by phone number, name and optionally email for better security
  */
+type ConsentRowMatch = {
+  index: number
+  row: string[]
+  consent: UserConsent
+  isWithdrawn: boolean
+  consentTimestamp: number
+}
+
+function parseConsentTimestamp(value?: string): number {
+  if (!value) return Number.NaN
+  let cleaned = value.trim().replace(/^'+|'+$/g, '')
+  if (!cleaned) return Number.NaN
+  cleaned = cleaned.replace(/\s+/g, ' ')
+  if (!cleaned.includes('T') && cleaned.includes(' ')) {
+    cleaned = cleaned.replace(' ', 'T')
+  }
+  if (!/(?:Z|[+-]\d{2}:?\d{2})$/i.test(cleaned)) {
+    cleaned = `${cleaned}${cleaned.endsWith('Z') ? '' : 'Z'}`
+  }
+  const ts = Date.parse(cleaned)
+  if (!Number.isNaN(ts)) return ts
+  const fallback = Date.parse(cleaned.replace(/ /g, 'T'))
+  return Number.isNaN(fallback) ? Number.NaN : fallback
+}
+
+function sortMatchesByRecency(a: ConsentRowMatch, b: ConsentRowMatch) {
+  const aValid = Number.isFinite(a.consentTimestamp)
+  const bValid = Number.isFinite(b.consentTimestamp)
+
+  if (aValid && bValid) {
+    if (a.consentTimestamp !== b.consentTimestamp) {
+      return b.consentTimestamp - a.consentTimestamp
+    }
+    return b.index - a.index
+  }
+
+  if (aValid && !bValid) return -1
+  if (!aValid && bValid) return 1
+
+  return b.index - a.index
+}
+
 export async function findUserConsent(phone: string, name: string, email?: string): Promise<UserConsent | null> {
   const { sheets } = getClients()
   
   try {
     // Normalize inputs
-    const normalizedPhone = phone.replace(/[\s\+\-\(\)]/g, '')
+    const normalizedPhone = normalizePhoneForSheet(phone)
     const normalizedName = normalizeName(name)
     const normalizedEmail = email ? email.toLowerCase().trim() : ''
     
@@ -292,42 +344,64 @@ export async function findUserConsent(phone: string, name: string, email?: strin
     if (rows.length <= 1) return null // No data or only headers
     
     // Skip header row and find matching phone AND name (AND email if provided)
+    const matches: ConsentRowMatch[] = []
+
     for (let i = 1; i < rows.length; i++) {
-      const row = rows[i] || []
-      const rowPhone = String(row[0] || '').trim()
-      const rowEmail = String(row[1] || '').trim() 
-      const rowName = String(row[2] || '').trim()
-      
-      const normalizedRowPhone = rowPhone.replace(/[\s\+\-\(\)]/g, '')
-      const normalizedRowName = normalizeName(rowName)
-      const normalizedRowEmail = rowEmail.toLowerCase().trim()
-      
-      // Phone AND name must match for security
+      const row = (rows[i] || []).map(cell => String(cell ?? ''))
+      const rowPhoneRaw = row[0]?.trim() ?? ''
+      const rowEmailRaw = row[1]?.trim() ?? ''
+      const rowNameRaw = row[2]?.trim() ?? ''
+
+      const normalizedRowPhone = normalizePhoneForSheet(rowPhoneRaw)
+      const normalizedRowName = normalizeName(rowNameRaw)
+      const normalizedRowEmail = rowEmailRaw.toLowerCase().trim()
+
       const phoneMatch = normalizedRowPhone === normalizedPhone
       const nameMatch = normalizedRowName === normalizedName
-      
-      // Email match (if provided by user and exists in record)
-      let emailMatch = true // Default to true if no email validation needed
+
+      let emailMatch = true
       if (normalizedEmail && normalizedRowEmail) {
         emailMatch = normalizedRowEmail === normalizedEmail
       }
-      
-      if (phoneMatch && nameMatch && emailMatch) {
-        return {
-          phone: rowPhone,
-          email: rowEmail || undefined,
-          name: rowName,
-          consentDate: String(row[3] || '').trim(),
-          ipHash: String(row[4] || '').trim(),
-          consentPrivacyV10: String(row[5] || '').trim().toUpperCase() === 'TRUE',
-          consentTermsV10: String(row[6] || '').trim().toUpperCase() === 'TRUE',
-          consentNotificationsV10: String(row[7] || '').trim().toUpperCase() === 'TRUE',
-          consentWithdrawnDate: String(row[8] || '').trim() || undefined,
-          withdrawalMethod: String(row[9] || '').trim() || undefined,
-        }
-      }
+
+      if (!phoneMatch || !nameMatch || !emailMatch) continue
+
+      const consentDate = row[3]?.trim() ?? ''
+      const consentWithdrawnDate = row[8]?.trim() || undefined
+      const consentPrivacy = String(row[5] || '').trim().toUpperCase() === 'TRUE'
+      const consentTerms = String(row[6] || '').trim().toUpperCase() === 'TRUE'
+      const consentNotifications = String(row[7] || '').trim().toUpperCase() === 'TRUE'
+
+      matches.push({
+        index: i,
+        row,
+        consent: {
+          phone: rowPhoneRaw,
+          email: rowEmailRaw || undefined,
+          name: rowNameRaw,
+          consentDate,
+          ipHash: row[4]?.trim() ?? '',
+          consentPrivacyV10: consentPrivacy,
+          consentTermsV10: consentTerms,
+          consentNotificationsV10: consentNotifications,
+          consentWithdrawnDate,
+          withdrawalMethod: row[9]?.trim() || undefined,
+        },
+        isWithdrawn: Boolean(consentWithdrawnDate) || !consentPrivacy || !consentTerms,
+        consentTimestamp: parseConsentTimestamp(consentDate),
+      })
     }
-    return null
+
+    if (!matches.length) return null
+
+    const activeMatches = matches.filter(m => !m.isWithdrawn)
+    if (activeMatches.length) {
+      activeMatches.sort(sortMatchesByRecency)
+      return activeMatches[0].consent
+    }
+
+    matches.sort(sortMatchesByRecency)
+    return matches[0].consent
   } catch (err) {
     console.error('Error finding user consent:', err)
     return null
@@ -375,7 +449,7 @@ export async function withdrawUserConsent(options: UpdateConsentWithdrawalOption
   const { sheets } = getClients()
   const { phone, name, email, withdrawalMethod, requestId } = options
 
-  const normalizedPhone = phone.replace(/[^\d+]/g, '')
+  const normalizedPhone = normalizePhoneForSheet(phone)
   const normalizedName = normalizeName(name)
   const normalizedEmail = email?.trim().toLowerCase() ?? ''
 
@@ -402,21 +476,44 @@ export async function withdrawUserConsent(options: UpdateConsentWithdrawalOption
   const withdrawnDateCol = 8
   const withdrawalMethodCol = 9
 
-  const matches: number[] = []
+  const matches: ConsentRowMatch[] = []
 
   for (let i = 1; i < rows.length; i++) {
-    const row = rows[i] || []
-    const rowPhone = String(row[phoneCol] || '').replace(/[^\d+]/g, '')
-    const rowName = normalizeName(String(row[nameCol] || ''))
-    const rowEmail = String(row[emailCol] || '').trim().toLowerCase()
+    const rawRow = (rows[i] || []).map(cell => String(cell ?? ''))
+    const rowPhoneRaw = rawRow[phoneCol]?.trim() ?? ''
+    const rowEmailRaw = rawRow[emailCol]?.trim().toLowerCase() ?? ''
+    const rowNameRaw = rawRow[nameCol]?.trim() ?? ''
 
-    const phoneMatch = rowPhone === normalizedPhone
-    const nameMatch = rowName === normalizedName
-    const emailMatch = !normalizedEmail || !rowEmail ? true : rowEmail === normalizedEmail
+    const phoneMatch = normalizePhoneForSheet(rowPhoneRaw) === normalizedPhone
+    const nameMatch = normalizeName(rowNameRaw) === normalizedName
+    const emailMatch = !normalizedEmail || !rowEmailRaw ? true : rowEmailRaw === normalizedEmail
 
-    if (phoneMatch && nameMatch && emailMatch) {
-      matches.push(i)
-    }
+    if (!phoneMatch || !nameMatch || !emailMatch) continue
+
+    const consentDate = rawRow[3]?.trim() ?? ''
+    const consentWithdrawnDate = rawRow[withdrawnDateCol]?.trim() || undefined
+    const consentPrivacy = String(rawRow[privacyCol] || '').trim().toUpperCase() === 'TRUE'
+    const consentTerms = String(rawRow[termsCol] || '').trim().toUpperCase() === 'TRUE'
+    const consentNotifications = String(rawRow[notificationsCol] || '').trim().toUpperCase() === 'TRUE'
+
+    matches.push({
+      index: i,
+      row: rawRow,
+      consent: {
+        phone: rowPhoneRaw,
+        email: rawRow[emailCol]?.trim() || undefined,
+        name: rowNameRaw,
+        consentDate,
+        ipHash: rawRow[4]?.trim() ?? '',
+        consentPrivacyV10: consentPrivacy,
+        consentTermsV10: consentTerms,
+        consentNotificationsV10: consentNotifications,
+        consentWithdrawnDate,
+        withdrawalMethod: rawRow[withdrawalMethodCol]?.trim() || undefined,
+      },
+      isWithdrawn: Boolean(consentWithdrawnDate) || !consentPrivacy || !consentTerms,
+      consentTimestamp: parseConsentTimestamp(consentDate),
+    })
   }
 
   if (!matches.length) {
@@ -429,26 +526,33 @@ export async function withdrawUserConsent(options: UpdateConsentWithdrawalOption
     return { updated: false, reason: 'NOT_FOUND' }
   }
 
-  if (matches.length > 1) {
-    const incident = `duplicate-consent-${Date.now()}`
-    console.warn('[withdrawUserConsent] Multiple matches detected', {
+  const activeMatches = matches.filter(m => !m.isWithdrawn)
+  if (!activeMatches.length) {
+    console.warn('[withdrawUserConsent] No active consents left to withdraw', {
       requestId,
-      incident,
       phone: maskPhoneHash(normalizedPhone),
-      totalMatches: matches.length,
+      matches: matches.length,
     })
-    return { updated: false, reason: 'MULTIPLE_MATCHES', incident }
+    return { updated: false, reason: 'NOT_FOUND' }
   }
 
-  const rowIndex = matches[0]
-  const row = rows[rowIndex] || []
-  row[phoneCol] = maskPhoneHash(String(row[phoneCol] ?? ''))
-  row[emailCol] = ''
-  row[nameCol] = ''
+  activeMatches.sort(sortMatchesByRecency)
+  const target = activeMatches[0]
+
+  if (activeMatches.length > 1) {
+    console.warn('[withdrawUserConsent] Multiple active matches detected, using most recent', {
+      requestId,
+      phone: maskPhoneHash(normalizedPhone),
+      totalMatches: activeMatches.length,
+    })
+  }
+
+  const rowIndex = target.index
+  const row = [...target.row]
   row[privacyCol] = 'FALSE'
   row[termsCol] = 'FALSE'
   row[notificationsCol] = 'FALSE'
-  row[withdrawnDateCol] = new Date().toISOString()
+  row[withdrawnDateCol] = nowInWarsawISO()
   row[withdrawalMethodCol] = trimToSheetLimit(withdrawalMethod)
 
   const updateRange = `A${rowIndex + 1}:J${rowIndex + 1}`

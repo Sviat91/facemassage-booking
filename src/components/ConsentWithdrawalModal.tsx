@@ -199,7 +199,7 @@ export default function ConsentWithdrawalModal({
               Wycofanie zgód
             </h2>
             <p className="mt-1 text-sm text-neutral-600 dark:text-dark-muted">
-              Wypełnij formularz, a skontaktujemy się w ciągu 72 godzin. Pełne usunięcie danych trwa maksymalnie 30 dni.
+               Pełne usunięcie danych trwa maksymalnie 30 dni.
             </p>
           </div>
           <button
@@ -214,14 +214,25 @@ export default function ConsentWithdrawalModal({
         {state === "success" ? (
           <div className="space-y-5">
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-900/30 dark:text-emerald-100">
-              <h3 className="text-lg font-medium">Twoja prośba została przyjęta</h3>
-              <p className="mt-1 text-sm">
-                Potwierdzamy przyjęcie zgłoszenia. Odpowiemy w ciągu 72 godzin, a pełne wycofanie zgód nastąpi do 30 dni.
+              <h3 className="flex items-center gap-2 text-lg font-semibold">
+                <span aria-hidden="true">✓</span>
+                Zgoda została pomyślnie wycofana
+              </h3>
+              <p className="mt-2 text-sm">
+                Twoja zgoda na przetwarzanie danych do celów rezerwacji została wycofana.
               </p>
-            </div>
-            <div className="space-y-3 text-sm text-neutral-600 dark:text-dark-muted">
-              <p>Jeśli potrzebujesz pilnych zmian, skontaktuj się telefonicznie z mistrzem.</p>
-              <p>Wiadomość potwierdzająca została wysłana na kanały podane przy rezerwacji (bez danych wrażliwych).</p>
+              <div className="mt-4 space-y-3 text-sm">
+                <div>
+                  <p className="font-medium">Co to oznacza:</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-left">
+                    <li>Nie będziesz mógł/mogła dokonywać nowych rezerwacji</li>
+                    <li>Zatrzymujemy tylko niezbędne dane zgodnie z wymogами prawnymi</li>
+                    <li>Przyszłe wizyty będą wymagały ponownego wyrażenia zgody</li>
+                  </ul>
+                </div>
+                <p>Jeśli chcesz całkowicie usunąć swoje dane, użyj formularza „Usuń moje dane”.</p>
+                <p>Dziękujemy za zrozumienie.</p>
+              </div>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <button className="btn btn-primary flex-1" onClick={onClose}>
