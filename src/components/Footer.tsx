@@ -12,21 +12,21 @@ export default function Footer() {
               href="/privacy" 
               className="hover:text-primary dark:hover:text-accent transition-colors"
             >
-              Privacy Policy
+              Polityka Prywatności
             </Link>
             <span className="mx-2">•</span>
             <Link 
               href="/terms" 
               className="hover:text-primary dark:hover:text-accent transition-colors"
             >
-              Terms of Service
+              Regulamin
             </Link>
             <span className="mx-2">•</span>
             <Link 
               href="/support" 
               className="hover:text-primary dark:hover:text-accent transition-colors"
             >
-              Support
+              Wsparcie
             </Link>
             <span className="mx-4">|</span>
             <span>© 2025 Somique Beauty. Wszystkie prawa zastrzeżone.</span>
