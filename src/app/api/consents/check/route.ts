@@ -12,6 +12,7 @@ const log = getLogger({ module: 'api.consents.check' })
 const BodySchema = z.object({
   phone: z.string().min(5),
   name: z.string().min(2), // Требуем имя для лучшей безопасности
+  email: z.string().email().optional(), // Email как дополнительный верификатор
 })
 
 export async function POST(req: NextRequest) {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     const body = BodySchema.parse(await req.json())
     ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip
 
-    log.debug({ ip, phone: body.phone, name: body.name }, 'Checking user consents')
+    log.debug({ ip, phone: body.phone, name: body.name, email: body.email }, 'Checking user consents')
 
     // Rate limiting: 20 requests per minute per IP
     const rateLimited = await rateLimit(`rl:consents:check:${ip}:1m`, 20, 60)
@@ -30,9 +31,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests', code: 'RATE_LIMITED' }, { status: 429 })
     }
 
-    const hasValidConsents = await hasValidConsent(body.phone, body.name)
+    const hasValidConsents = await hasValidConsent(body.phone, body.name, body.email)
     
-    log.info({ ip, phone: body.phone, name: body.name, hasValidConsents }, 'Consent check completed')
+    log.info({ ip, phone: body.phone, name: body.name, email: body.email, hasValidConsents }, 'Consent check completed')
     
     return NextResponse.json({ 
       hasValidConsent: hasValidConsents,

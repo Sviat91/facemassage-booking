@@ -160,14 +160,15 @@ export async function readExceptions(): Promise<ExceptionsMap> {
  */
 export interface UserConsent {
   phone: string // Column A
-  name: string // Column B
-  consentDate: string // Column C (ISO date string)
-  ipHash: string // Column D (partially masked IP)
-  consentPrivacyV10: boolean // Column E
-  consentTermsV10: boolean // Column F  
-  consentNotificationsV10: boolean // Column G
-  consentWithdrawnDate?: string // Column H (ISO date string, empty if not withdrawn)
-  withdrawalMethod?: string // Column I (empty if not withdrawn)
+  email?: string // Column B (optional)
+  name: string // Column C
+  consentDate: string // Column D (ISO date string)
+  ipHash: string // Column E (partially masked IP)
+  consentPrivacyV10: boolean // Column F
+  consentTermsV10: boolean // Column G  
+  consentNotificationsV10: boolean // Column H
+  consentWithdrawnDate?: string // Column I (ISO date string, empty if not withdrawn)
+  withdrawalMethod?: string // Column J (empty if not withdrawn)
 }
 
 /**
@@ -213,20 +214,21 @@ export async function saveUserConsent(consent: Omit<UserConsent, 'consentDate' |
   const values = [
     [
       normalizedPhone, // A - store phone without + and spaces
-      consent.name, // B
-      now, // C
-      ipHash, // D
-      consent.consentPrivacyV10 ? 'TRUE' : 'FALSE', // E
-      consent.consentTermsV10 ? 'TRUE' : 'FALSE', // F
-      consent.consentNotificationsV10 ? 'TRUE' : 'FALSE', // G
-      '', // H (withdrawn date - empty for new consents)
-      '', // I (withdrawal method - empty for new consents)
+      consent.email || '', // B - email (optional)
+      consent.name, // C - name
+      now, // D - consent_date
+      ipHash, // E - ip_hash
+      consent.consentPrivacyV10 ? 'TRUE' : 'FALSE', // F - consent_privacy_v1.0
+      consent.consentTermsV10 ? 'TRUE' : 'FALSE', // G - consent_terms_v1.0
+      consent.consentNotificationsV10 ? 'TRUE' : 'FALSE', // H - consent_notifications_v1_0
+      '', // I (withdrawn date - empty for new consents)
+      '', // J (withdrawal method - empty for new consents)
     ]
   ]
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: config.USER_CONSENTS_GOOGLE_SHEET_ID,
-    range: 'A:I', // Используем первый лист без указания названия
+    range: 'A:J', // Обновлен диапазон для новой структуры
     valueInputOption: 'USER_ENTERED',
     requestBody: {
       values
@@ -242,17 +244,18 @@ function normalizeName(name: string): string {
 }
 
 /**
- * Find existing consent by phone number AND name for better security
+ * Find existing consent by phone number, name and optionally email for better security
  */
-export async function findUserConsent(phone: string, name: string): Promise<UserConsent | null> {
+export async function findUserConsent(phone: string, name: string, email?: string): Promise<UserConsent | null> {
   const { sheets } = getClients()
   
   try {
-    // Normalize phone number (remove + and spaces)
+    // Normalize inputs
     const normalizedPhone = phone.replace(/[\s\+\-\(\)]/g, '')
     const normalizedName = normalizeName(name)
+    const normalizedEmail = email ? email.toLowerCase().trim() : ''
     
-    const range = 'A:I' // Используем первый лист без указания названия
+    const range = 'A:J' // Обновлен диапазон для новой структуры
     const res = await sheets.spreadsheets.values.get({ 
       spreadsheetId: config.USER_CONSENTS_GOOGLE_SHEET_ID, 
       range 
@@ -261,26 +264,39 @@ export async function findUserConsent(phone: string, name: string): Promise<User
     const rows = res.data.values ?? []
     if (rows.length <= 1) return null // No data or only headers
     
-    // Skip header row and find matching phone AND name
+    // Skip header row and find matching phone AND name (AND email if provided)
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i] || []
       const rowPhone = String(row[0] || '').trim()
-      const rowName = String(row[1] || '').trim()
+      const rowEmail = String(row[1] || '').trim() 
+      const rowName = String(row[2] || '').trim()
+      
       const normalizedRowPhone = rowPhone.replace(/[\s\+\-\(\)]/g, '')
       const normalizedRowName = normalizeName(rowName)
+      const normalizedRowEmail = rowEmail.toLowerCase().trim()
       
-      // BOTH phone AND name must match for security
-      if (normalizedRowPhone === normalizedPhone && normalizedRowName === normalizedName) {
+      // Phone AND name must match for security
+      const phoneMatch = normalizedRowPhone === normalizedPhone
+      const nameMatch = normalizedRowName === normalizedName
+      
+      // Email match (if provided by user and exists in record)
+      let emailMatch = true // Default to true if no email validation needed
+      if (normalizedEmail && normalizedRowEmail) {
+        emailMatch = normalizedRowEmail === normalizedEmail
+      }
+      
+      if (phoneMatch && nameMatch && emailMatch) {
         return {
           phone: rowPhone,
-          name: String(row[1] || '').trim(),
-          consentDate: String(row[2] || '').trim(),
-          ipHash: String(row[3] || '').trim(),
-          consentPrivacyV10: String(row[4] || '').trim().toUpperCase() === 'TRUE',
-          consentTermsV10: String(row[5] || '').trim().toUpperCase() === 'TRUE',
-          consentNotificationsV10: String(row[6] || '').trim().toUpperCase() === 'TRUE',
-          consentWithdrawnDate: String(row[7] || '').trim() || undefined,
-          withdrawalMethod: String(row[8] || '').trim() || undefined,
+          email: rowEmail || undefined,
+          name: rowName,
+          consentDate: String(row[3] || '').trim(),
+          ipHash: String(row[4] || '').trim(),
+          consentPrivacyV10: String(row[5] || '').trim().toUpperCase() === 'TRUE',
+          consentTermsV10: String(row[6] || '').trim().toUpperCase() === 'TRUE',
+          consentNotificationsV10: String(row[7] || '').trim().toUpperCase() === 'TRUE',
+          consentWithdrawnDate: String(row[8] || '').trim() || undefined,
+          withdrawalMethod: String(row[9] || '').trim() || undefined,
         }
       }
     }
@@ -303,8 +319,8 @@ export async function findUserConsentByPhone(phone: string): Promise<UserConsent
 /**
  * Check if user has valid (non-withdrawn) consent
  */
-export async function hasValidConsent(phone: string, name: string): Promise<boolean> {
-  const consent = await findUserConsent(phone, name)
+export async function hasValidConsent(phone: string, name: string, email?: string): Promise<boolean> {
+  const consent = await findUserConsent(phone, name, email)
   if (!consent) return false
   
   // Check if consent was withdrawn

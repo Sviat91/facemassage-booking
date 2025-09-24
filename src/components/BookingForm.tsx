@@ -105,11 +105,11 @@ export default function BookingForm({
     setLoading(true)
     
     try {
-      // Check if user already has valid consents (using phone + name for security)
+      // Check if user already has valid consents (using phone + name + email for security)
       const consentCheckRes = await fetch('/api/consents/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, name }),
+        body: JSON.stringify({ phone, name, email: email || undefined }),
       })
       
       if (consentCheckRes.ok) {
