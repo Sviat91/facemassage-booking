@@ -145,6 +145,7 @@ export async function POST(req: NextRequest) {
 
     const maskedPhone = maskPhoneForLog(normalizedPhone)
     log.info({ phone: maskedPhone, requestId }, 'Consent withdrawn successfully')
+    await cacheDel(idempotencyKey)
 
     return NextResponse.json({
       status: 'accepted',

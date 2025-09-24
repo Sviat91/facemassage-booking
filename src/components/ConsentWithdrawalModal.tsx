@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import PhoneInput from "./ui/PhoneInput";
 
-type ModalState = "idle" | "loading" | "success" | "not-found" | "error";
+type ModalState =
+  | "idle"
+  | "loading"
+  | "success"
+  | "already-processed"
+  | "not-found"
+  | "error";
 
 type ConsentWithdrawalModalProps = {
   isOpen: boolean;
@@ -156,7 +162,9 @@ export default function ConsentWithdrawalModal({
       }
 
       if (res.status === 202) {
-        setState("success");
+        const payload = (await res.json()) as ApiError;
+        setError(payload);
+        setState("already-processed");
         return;
       }
 
@@ -233,6 +241,31 @@ export default function ConsentWithdrawalModal({
                 <p>Jeśli chcesz całkowicie usunąć swoje dane, użyj formularza „Usuń moje dane”.</p>
                 <p>Dziękujemy za zrozumienie.</p>
               </div>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button className="btn btn-primary flex-1" onClick={onClose}>
+                Zamknij
+              </button>
+            </div>
+          </div>
+        ) : state === "already-processed" ? (
+          <div className="space-y-5">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-500/40 dark:bg-amber-900/30 dark:text-amber-100">
+              <h3 className="flex items-center gap-2 text-lg font-semibold">
+                <span aria-hidden="true">ℹ</span>
+                Zgoda była już wcześniej wycofana
+              </h3>
+              <p className="mt-2 text-sm">
+                Ostatnia prośba jest jeszcze w trakcie realizacji lub została zakończona. Jeśli musisz nas o tym
+                poinformować dodatkowo, skontaktuj się przez formularz wsparcia.
+              </p>
+              {showHints && error?.hints?.length ? (
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
+                  {error.hints.map((hint) => (
+                    <li key={hint}>{hint}</li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <button className="btn btn-primary flex-1" onClick={onClose}>
