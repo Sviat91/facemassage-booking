@@ -1,5 +1,14 @@
 import { config } from '../env'
 import { getClients } from './auth'
+export type { UserConsent } from './consents'
+export {
+  saveUserConsent,
+  findUserConsent,
+  findUserConsentByPhone,
+  hasValidConsent,
+  withdrawUserConsent,
+  normalizePhoneForSheet,
+} from './consents'
 
 export async function readProcedures() {
   const { sheets } = getClients()
@@ -151,181 +160,4 @@ export async function readExceptions(): Promise<ExceptionsMap> {
     ex[d] = { hours: String(row[gi.hours] ?? '').replace(/\u00A0/g, ' ').trim(), isDayOff: isYes(row[gi.dayoff]) }
   }
   return ex
-}
-
-// === USER CONSENTS FUNCTIONS ===
-
-/**
- * User consent record structure based on the Google Sheets format
- */
-export interface UserConsent {
-  phone: string // Column A
-  email?: string // Column B (optional)
-  name: string // Column C
-  consentDate: string // Column D (ISO date string)
-  ipHash: string // Column E (partially masked IP)
-  consentPrivacyV10: boolean // Column F
-  consentTermsV10: boolean // Column G  
-  consentNotificationsV10: boolean // Column H
-  consentWithdrawnDate?: string // Column I (ISO date string, empty if not withdrawn)
-  withdrawalMethod?: string // Column J (empty if not withdrawn)
-}
-
-/**
- * Hash IP address partially for privacy compliance
- * Shows first 3 octets, masks last octet: 192.168.1.123 → 192.168.1.xxx
- */
-function hashIpPartially(ip: string): string {
-  // Handle IPv6 localhost
-  if (ip === '::1' || ip === '::ffff:127.0.0.1') {
-    return '127.0.0.xxx'
-  }
-  
-  // Handle IPv4
-  const parts = ip.split('.')
-  if (parts.length === 4) {
-    const visible = parts.slice(0, 3).join('.') // Show first 3 octets
-    return `${visible}.xxx` // Hide only last octet
-  }
-  
-  // Handle IPv6 (simplify to avoid complexity)
-  if (ip.includes(':')) {
-    const parts = ip.split(':')
-    if (parts.length >= 2) {
-      return `${parts[0]}:${parts[1]}:xxxx:xxxx`
-    }
-  }
-  
-  return 'xxx.xxx.xxx.xxx' // fallback for invalid IPs
-}
-
-/**
- * Save user consent to Google Sheets
- */
-export async function saveUserConsent(consent: Omit<UserConsent, 'consentDate' | 'ipHash'> & { ip: string }): Promise<void> {
-  const { sheets } = getClients()
-  
-  const now = new Date().toISOString()
-  const ipHash = hashIpPartially(consent.ip)
-  
-  // Normalize phone for consistent storage (remove + and spaces)
-  const normalizedPhone = consent.phone.replace(/[\s\+\-\(\)]/g, '')
-  
-  const values = [
-    [
-      normalizedPhone, // A - store phone without + and spaces
-      consent.email || '', // B - email (optional)
-      consent.name, // C - name
-      now, // D - consent_date
-      ipHash, // E - ip_hash
-      consent.consentPrivacyV10 ? 'TRUE' : 'FALSE', // F - consent_privacy_v1.0
-      consent.consentTermsV10 ? 'TRUE' : 'FALSE', // G - consent_terms_v1.0
-      consent.consentNotificationsV10 ? 'TRUE' : 'FALSE', // H - consent_notifications_v1_0
-      '', // I (withdrawn date - empty for new consents)
-      '', // J (withdrawal method - empty for new consents)
-    ]
-  ]
-
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: config.USER_CONSENTS_GOOGLE_SHEET_ID,
-    range: 'A:J', // Обновлен диапазон для новой структуры
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values
-    }
-  })
-}
-
-/**
- * Normalize name for comparison (remove extra spaces, lowercase)
- */
-function normalizeName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ')
-}
-
-/**
- * Find existing consent by phone number, name and optionally email for better security
- */
-export async function findUserConsent(phone: string, name: string, email?: string): Promise<UserConsent | null> {
-  const { sheets } = getClients()
-  
-  try {
-    // Normalize inputs
-    const normalizedPhone = phone.replace(/[\s\+\-\(\)]/g, '')
-    const normalizedName = normalizeName(name)
-    const normalizedEmail = email ? email.toLowerCase().trim() : ''
-    
-    const range = 'A:J' // Обновлен диапазон для новой структуры
-    const res = await sheets.spreadsheets.values.get({ 
-      spreadsheetId: config.USER_CONSENTS_GOOGLE_SHEET_ID, 
-      range 
-    })
-    
-    const rows = res.data.values ?? []
-    if (rows.length <= 1) return null // No data or only headers
-    
-    // Skip header row and find matching phone AND name (AND email if provided)
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i] || []
-      const rowPhone = String(row[0] || '').trim()
-      const rowEmail = String(row[1] || '').trim() 
-      const rowName = String(row[2] || '').trim()
-      
-      const normalizedRowPhone = rowPhone.replace(/[\s\+\-\(\)]/g, '')
-      const normalizedRowName = normalizeName(rowName)
-      const normalizedRowEmail = rowEmail.toLowerCase().trim()
-      
-      // Phone AND name must match for security
-      const phoneMatch = normalizedRowPhone === normalizedPhone
-      const nameMatch = normalizedRowName === normalizedName
-      
-      // Email match (if provided by user and exists in record)
-      let emailMatch = true // Default to true if no email validation needed
-      if (normalizedEmail && normalizedRowEmail) {
-        emailMatch = normalizedRowEmail === normalizedEmail
-      }
-      
-      if (phoneMatch && nameMatch && emailMatch) {
-        return {
-          phone: rowPhone,
-          email: rowEmail || undefined,
-          name: rowName,
-          consentDate: String(row[3] || '').trim(),
-          ipHash: String(row[4] || '').trim(),
-          consentPrivacyV10: String(row[5] || '').trim().toUpperCase() === 'TRUE',
-          consentTermsV10: String(row[6] || '').trim().toUpperCase() === 'TRUE',
-          consentNotificationsV10: String(row[7] || '').trim().toUpperCase() === 'TRUE',
-          consentWithdrawnDate: String(row[8] || '').trim() || undefined,
-          withdrawalMethod: String(row[9] || '').trim() || undefined,
-        }
-      }
-    }
-    return null
-  } catch (err) {
-    console.error('Error finding user consent:', err)
-    return null
-  }
-}
-
-/**
- * Find existing consent by phone number (legacy function for backward compatibility)
- */
-export async function findUserConsentByPhone(phone: string): Promise<UserConsent | null> {
-  console.warn('⚠️ findUserConsentByPhone is deprecated, use findUserConsent(phone, name) for better security')
-  // For now, return null to force showing consent modal
-  return null
-}
-
-/**
- * Check if user has valid (non-withdrawn) consent
- */
-export async function hasValidConsent(phone: string, name: string, email?: string): Promise<boolean> {
-  const consent = await findUserConsent(phone, name, email)
-  if (!consent) return false
-  
-  // Check if consent was withdrawn
-  if (consent.consentWithdrawnDate) return false
-  
-  // Check if required consents are given (privacy AND terms required)
-  return consent.consentPrivacyV10 && consent.consentTermsV10
 }
