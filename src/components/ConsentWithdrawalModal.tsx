@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PhoneInput from "./ui/PhoneInput";
 
 type ModalState =
@@ -22,6 +22,13 @@ interface ApiError {
   hints?: string[];
 }
 
+const generateRequestId = () => {
+  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
 export default function ConsentWithdrawalModal({
   isOpen,
   onClose,
@@ -31,6 +38,7 @@ export default function ConsentWithdrawalModal({
     | undefined;
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
   const turnstileRef = useRef<HTMLDivElement | null>(null);
+  const widgetIdRef = useRef<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -38,25 +46,45 @@ export default function ConsentWithdrawalModal({
   const [state, setState] = useState<ModalState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [requestId, setRequestId] = useState<string | null>(null);
+  const [requestId, setRequestId] = useState<string>(() => generateRequestId());
 
-  // Reset modal when opened
+  const resetTurnstile = useCallback(() => {
+    setToken(null);
+    if (!siteKey || typeof window === "undefined") {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const turnstile = (window as any)?.turnstile;
+    if (turnstile && widgetIdRef.current) {
+      try {
+        turnstile.reset(widgetIdRef.current);
+      } catch (err) {
+        console.warn("Turnstile reset failed", err);
+      }
+    }
+  }, [siteKey]);
+
+  const resetForm = useCallback(() => {
+    setName("");
+    setPhone("");
+    setEmail("");
+    setAcknowledged(false);
+    setState("idle");
+    setError(null);
+    setRequestId(generateRequestId());
+    resetTurnstile();
+  }, [resetTurnstile]);
+
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [onClose, resetForm]);
+
   useEffect(() => {
     if (isOpen) {
-      setName("");
-      setPhone("");
-      setEmail("");
-      setAcknowledged(false);
-      setState("idle");
-      setError(null);
-      setToken(null);
-      const newId =
-        typeof window !== "undefined" && window.crypto?.randomUUID
-          ? window.crypto.randomUUID()
-          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      setRequestId(newId);
+      resetForm();
     }
-  }, [isOpen]);
+  }, [isOpen, resetForm]);
 
   // Focus management
   useEffect(() => {
@@ -83,12 +111,12 @@ export default function ConsentWithdrawalModal({
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        handleClose();
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [isOpen, onClose]);
+  }, [handleClose, isOpen]);
 
   // Load Turnstile
   useEffect(() => {
@@ -106,13 +134,14 @@ export default function ConsentWithdrawalModal({
     const interval = setInterval(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const turnstile = (window as any)?.turnstile;
-      if (turnstile && turnstileRef.current) {
+      if (turnstile && turnstileRef.current && !widgetIdRef.current) {
         try {
-          turnstile.render(turnstileRef.current, {
+          widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: "pl",
             callback: (value: string) => setToken(value),
-            "error-callback": () => setToken(null),
+            "error-callback": () => resetTurnstile(),
+            "expired-callback": () => resetTurnstile(),
           });
           clearInterval(interval);
         } catch (err) {
@@ -121,8 +150,23 @@ export default function ConsentWithdrawalModal({
       }
     }, 200);
 
-    return () => clearInterval(interval);
-  }, [isOpen, siteKey]);
+    return () => {
+      clearInterval(interval);
+      if (!siteKey || typeof window === "undefined") {
+        widgetIdRef.current = null;
+        return;
+      }
+      const turnstile = (window as any)?.turnstile;
+      if (turnstile && widgetIdRef.current) {
+        try {
+          turnstile.remove(widgetIdRef.current);
+        } catch (err) {
+          console.warn("Turnstile cleanup failed", err);
+        }
+      }
+      widgetIdRef.current = null;
+    };
+  }, [isOpen, resetTurnstile, siteKey]);
 
   if (!isOpen) return null;
 
@@ -158,6 +202,8 @@ export default function ConsentWithdrawalModal({
         const payload = (await res.json()) as ApiError;
         setError(payload);
         setState("not-found");
+        resetTurnstile();
+        setRequestId(generateRequestId());
         return;
       }
 
@@ -165,6 +211,8 @@ export default function ConsentWithdrawalModal({
         const payload = (await res.json()) as ApiError;
         setError(payload);
         setState("already-processed");
+        resetTurnstile();
+        setRequestId(generateRequestId());
         return;
       }
 
@@ -172,6 +220,8 @@ export default function ConsentWithdrawalModal({
         const payload = (await res.json()) as ApiError;
         setError(payload);
         setState("error");
+        resetTurnstile();
+        setRequestId(generateRequestId());
         return;
       }
 
@@ -183,6 +233,8 @@ export default function ConsentWithdrawalModal({
         code: "NETWORK_ERROR",
       });
       setState("error");
+      resetTurnstile();
+      setRequestId(generateRequestId());
     }
   }
 
@@ -192,7 +244,7 @@ export default function ConsentWithdrawalModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
-      onClick={onClose}
+      onClick={handleClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="withdraw-modal-title"
@@ -211,7 +263,7 @@ export default function ConsentWithdrawalModal({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-200/70 dark:text-dark-muted dark:hover:bg-dark-border"
             aria-label="Zamknij"
           >
@@ -243,7 +295,7 @@ export default function ConsentWithdrawalModal({
               </div>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button className="btn btn-primary flex-1" onClick={onClose}>
+              <button className="btn btn-primary flex-1" onClick={handleClose}>
                 Zamknij
               </button>
             </div>
@@ -268,7 +320,7 @@ export default function ConsentWithdrawalModal({
               ) : null}
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button className="btn btn-primary flex-1" onClick={onClose}>
+              <button className="btn btn-primary flex-1" onClick={handleClose}>
                 Zamknij
               </button>
             </div>
@@ -357,11 +409,7 @@ export default function ConsentWithdrawalModal({
               <button
                 type="button"
                 className="btn btn-outline flex-1"
-                onClick={() => {
-                  setState('idle')
-                  setError(null)
-                  onClose()
-                }}
+                onClick={handleClose}
                 disabled={isLoading}
               >
                 Anuluj
