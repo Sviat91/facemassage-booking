@@ -150,7 +150,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
     const minMonth = new Date(today.getFullYear(), today.getMonth(), 1)
     const isPrevDisabled = prevMonth < minMonth
 
-    const buttonBase = "flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-40 disabled:hover:bg-transparent"
+    const buttonBase = "flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 dark:border-dark-muted text-sm font-medium text-neutral-700 dark:text-dark-text transition-all duration-200 hover:bg-neutral-100 dark:hover:bg-dark-muted hover:border-neutral-400 dark:hover:border-dark-text hover:scale-110 hover:shadow-lg disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:scale-100 disabled:hover:shadow-none !important"
     const enterClass = navDirection === 'forward' ? 'opacity-0 translate-x-4' : 'opacity-0 -translate-x-4'
     const finalClass = 'opacity-100 translate-x-0'
 

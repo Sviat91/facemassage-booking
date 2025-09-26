@@ -1,6 +1,7 @@
 "use client"
 import type { Metadata } from 'next'
 import BackButton from '../../components/BackButton'
+import ThemeToggle from '../../components/ThemeToggle'
 import ConsentWithdrawalModal from '../../components/ConsentWithdrawalModal'
 import DataErasureModal from '../../components/DataErasureModal'
 import DataExportModal from '../../components/DataExportModal'
@@ -84,11 +85,12 @@ export default function SupportPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#FFF6E9] to-[#FDE5C3] dark:from-[#9c6849] dark:to-[#7A4F35] transition-all duration-300">
+    <main className="min-h-screen relative">
       <BackButton />
-      <div className="container mx-auto max-w-6xl px-6 py-8">
+      <ThemeToggle />
+      <div className="container mx-auto max-w-6xl px-6 py-6">
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-3">
             Centrum Pomocy
           </h1>
@@ -97,11 +99,11 @@ export default function SupportPage() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-8">
-              <h2 className="text-2xl font-semibold text-text dark:text-dark-text mb-6">
+            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-6">
+              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">
                 Skontaktuj się z nami
               </h2>
               
@@ -183,7 +185,7 @@ export default function SupportPage() {
                     </label>
                     <textarea
                       required
-                      rows={6}
+                      rows={4}
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
                       className="w-full rounded-xl border border-border bg-white/80 px-4 py-3 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
@@ -211,10 +213,10 @@ export default function SupportPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Contact Info */}
-            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-6">
-              <h3 className="text-lg font-semibold text-text dark:text-dark-text mb-4">
+            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-5">
+              <h3 className="text-lg font-semibold text-text dark:text-dark-text mb-3">
                 Informacje kontaktowe
               </h3>
               <div className="space-y-4">
@@ -252,8 +254,8 @@ export default function SupportPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-6">
-              <h3 className="text-lg font-semibold text-text dark:text-dark-text mb-4">
+            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-5">
+              <h3 className="text-lg font-semibold text-text dark:text-dark-text mb-3">
                 Szybkie akcje
               </h3>
               <div className="space-y-3">
