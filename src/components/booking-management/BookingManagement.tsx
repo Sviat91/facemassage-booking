@@ -175,17 +175,29 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       onSuccess: () => {
         console.log('🎉 Time change successful - showing success state')
         actions.setActionError(null)
+        
+        // Сбрасываем состояние календаря и показываем панель успеха
+        actions.setPendingSlot(null)
+        onDateReset?.() // Сбрасываем выбранную дату в календаре
+        onCalendarModeChange?.('booking') // Возвращаем календарь в обычный режим
         actions.setState('time-change-success')
         
-        // Обновляем список резерваций в фоне
-        const token = siteKey ? getTurnstileTokenWithSession() ?? turnstileSession.turnstileToken ?? undefined : undefined
-        if (token) turnstileSession.setTurnstileToken(token)
-        searchMutation.mutate({ turnstileToken: token ?? undefined })
+        console.log('✅ State changed to time-change-success')
+        
+        // НЕ обновляем поиск сразу - пусть пользователь увидит success панель
+        // Обновим когда он нажмет "Powrót do wyników"
       },
       onError: (error) => {
         console.error('❌ Time change failed:', error.message)
         actions.setActionError(error.message)
+        
+        // Сбрасываем состояние календаря при ошибке тоже
+        actions.setPendingSlot(null)
+        onDateReset?.() // Сбрасываем выбранную дату в календаре
+        onCalendarModeChange?.('booking') // Возвращаем календарь в обычный режим
         actions.setState('time-change-error')
+        
+        console.log('❌ State changed to time-change-error')
       },
     })
 
@@ -317,9 +329,14 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       }
     }
 
-    const handleBackToResults = () => {
-      actions.setState('results')
+    const handleBackToResults = () => {      
       actions.clearTimeChange() // Очищаем сессию при возврате
+      actions.setState('results')
+      
+      // Обновляем поиск при возврате к результатам
+      const token = siteKey ? getTurnstileTokenWithSession() ?? turnstileSession.turnstileToken ?? undefined : undefined
+      if (token) turnstileSession.setTurnstileToken(token)
+      searchMutation.mutate({ turnstileToken: token ?? undefined })
     }
 
     const handleRetryTimeChange = () => {
