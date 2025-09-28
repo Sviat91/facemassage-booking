@@ -40,6 +40,7 @@ interface PanelRendererProps {
   onEditProcedureBack: () => void
   onEditDatetimeBack: () => void
   onConfirmSameTime: () => void
+  onRequestNewTime: () => void
   onExtendSearch: () => void
   onCheckAvailability: () => void
   selectedDate?: Date
@@ -82,6 +83,7 @@ export default function PanelRenderer(props: PanelRendererProps) {
     onEditProcedureBack,
     onEditDatetimeBack,
     onConfirmSameTime,
+    onRequestNewTime,
     onExtendSearch,
     onCheckAvailability,
     selectedDate,
@@ -154,7 +156,7 @@ export default function PanelRenderer(props: PanelRendererProps) {
           onSelectProcedure={onSelectProcedure}
           onBack={onEditProcedureBack}
           onConfirmSameTime={onConfirmSameTime}
-          onRequestNewTime={onExtendSearch}
+          onRequestNewTime={onRequestNewTime}
           onCheckAvailability={onCheckAvailability}
         />
       )

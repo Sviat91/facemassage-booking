@@ -603,6 +603,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
                 onEditProcedureBack={handleBackToResults}
                 onEditDatetimeBack={handleBackToProcedure}
                 onConfirmSameTime={handleConfirmSameTime}
+                onRequestNewTime={handleRequestNewTime}
                 onExtendSearch={handleExtendSearch}
                 onCheckAvailability={handleCheckAvailability}
                 selectedDate={selectedDate}
