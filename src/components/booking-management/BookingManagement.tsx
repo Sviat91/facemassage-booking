@@ -156,6 +156,15 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       },
     })
 
+    // Универсальная функция для сброса состояния календаря
+    const resetCalendarState = useCallback(() => {
+      console.log('🔄 Resetting calendar state to initial (no procedure, no date, no slot)')
+      actions.setPendingSlot(null)
+      onDateReset?.() // Сбрасываем выбранную дату
+      onCalendarModeChange?.('booking') // Возвращаем в режим бронирования
+      onProcedureChange?.(undefined) // Сбрасываем процедуру - календарь станет неактивным
+    }, [onDateReset, onCalendarModeChange, onProcedureChange, actions])
+
     // Простая мутация для изменения времени - чистая архитектура
     const updateTimeMutation = useMutation<void, MutationError, void>({
       mutationFn: async () => {
@@ -177,9 +186,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
         actions.setActionError(null)
         
         // Сбрасываем состояние календаря и показываем панель успеха
-        actions.setPendingSlot(null)
-        onDateReset?.() // Сбрасываем выбранную дату в календаре
-        onCalendarModeChange?.('booking') // Возвращаем календарь в обычный режим
+        resetCalendarState()
         actions.setState('time-change-success')
         
         console.log('✅ State changed to time-change-success')
@@ -192,9 +199,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
         actions.setActionError(error.message)
         
         // Сбрасываем состояние календаря при ошибке тоже
-        actions.setPendingSlot(null)
-        onDateReset?.() // Сбрасываем выбранную дату в календаре
-        onCalendarModeChange?.('booking') // Возвращаем календарь в обычный режим
+        resetCalendarState()
         actions.setState('time-change-error')
         
         console.log('❌ State changed to time-change-error')
@@ -340,7 +345,9 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     }
 
     const handleRetryTimeChange = () => {
-      // Возвращаемся к выбору времени для повторной попытки
+      // Возвращаемся к выбору времени для повторной попытки и сбрасываем календарь
+      console.log('🔄 User retrying time change after error - resetting calendar')
+      resetCalendarState()
       if (state.timeChangeSession) {
         actions.setState('edit-datetime')
       } else {
@@ -403,7 +410,9 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     }
 
     const handleConfirmTimeChangeBack = () => {
-      // Возвращаемся к календарю изменения времени
+      // Возвращаемся к календарю изменения времени и сбрасываем календарь
+      console.log('🔙 User canceled time change confirmation - resetting calendar')
+      resetCalendarState()
       actions.setState('edit-datetime')
       actions.setActionError(null)
     }
