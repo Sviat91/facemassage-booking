@@ -222,14 +222,13 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       },
       onSuccess: () => {
         actions.setActionError(null)
-        actions.setState('results')
-        actions.selectBooking(null)
-        const token = siteKey ? (turnstileSession.turnstileToken ?? undefined) : undefined
-        if (token) turnstileSession.setTurnstileToken(token)
-        searchMutation.mutate({ turnstileToken: token })
+        // Pokaż zielонą панель успеха anulowania; не обновляем список сразу
+        actions.setState('cancel-success')
       },
       onError: (error) => {
+        // Переходим на красную панель ошибки с понятным сообщением
         actions.setActionError(error.message)
+        actions.setState('cancel-error')
       },
     })
 
@@ -379,6 +378,12 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       } else {
         actions.setState('results')
       }
+    }
+
+    const handleRetryCancel = () => {
+      // Вернуться к подтверждению отмены, чтобы попробовать снова
+      actions.setActionError(null)
+      actions.setState('confirm-cancel')
     }
 
     const handleBackToSearch = () => {
@@ -546,6 +551,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
                 }}
                 onBackToResults={handleBackToResults}
                 onRetryTimeChange={handleRetryTimeChange}
+                onRetryCancel={handleRetryCancel}
               />
             </div>
           </div>

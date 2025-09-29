@@ -12,6 +12,8 @@ import ErrorFallbackPanel from './ErrorFallbackPanel'
 import DirectTimeChangePanel from './DirectTimeChangePanel'
 import TimeChangeSuccessPanel from './TimeChangeSuccessPanel'
 import TimeChangeErrorPanel from './TimeChangeErrorPanel'
+import CancelSuccessPanel from './CancelSuccessPanel'
+import CancelErrorPanel from './CancelErrorPanel'
 import type {
   BookingResult,
   ManagementState,
@@ -58,6 +60,7 @@ interface PanelRendererProps {
   onCancelBack: () => void
   onBackToResults: () => void
   onRetryTimeChange: () => void
+  onRetryCancel?: () => void
 }
 
 export default function PanelRenderer(props: PanelRendererProps) {
@@ -99,6 +102,7 @@ export default function PanelRenderer(props: PanelRendererProps) {
     onCancelBack,
     onBackToResults,
     onRetryTimeChange,
+    onRetryCancel,
   } = props
 
   switch (state) {
@@ -234,6 +238,31 @@ export default function PanelRenderer(props: PanelRendererProps) {
           errorMessage={cancelError}
           onConfirm={onConfirmCancel}
           onBack={onCancelBack}
+        />
+      )
+    case 'cancel-success':
+      if (!selectedBooking) {
+        return (
+          <ErrorFallbackPanel
+            onRetry={onBackToSearch}
+            onContactMaster={onContactMaster}
+          />
+        )
+      }
+      return (
+        <CancelSuccessPanel
+          booking={selectedBooking}
+          onBackToResults={onBackToResults}
+        />
+      )
+    case 'cancel-error':
+      return (
+        <CancelErrorPanel
+          booking={selectedBooking}
+          errorMessage={cancelError}
+          onBackToResults={onBackToResults}
+          onTryAgain={onRetryCancel || onBackToSearch}
+          onContactMaster={onContactMaster}
         />
       )
     case 'time-change-success':

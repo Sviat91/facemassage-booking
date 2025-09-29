@@ -288,22 +288,31 @@ export async function cancelBooking(booking: BookingResult): Promise<void> {
   
   if (!response.ok) {
     let detail = 'Nie udało się anulować rezerwacji.'
+    const status = response.status
     try {
       const json = (await response.json()) as { error?: string; code?: string }
       if (json?.error) {
         detail = json.error
       }
-      
-      // Improve error messages
+      // HTTP status specific mapping
+      if (status === 429) {
+        detail = 'Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.'
+      }
+      // Improve code-based messages
       if (json?.code === 'BOOKING_NOT_FOUND') {
         detail = 'Rezerwacja nie została znaleziona. Spróbuj wyszukać ponownie.'
       } else if (json?.code === 'VERIFICATION_FAILED') {
         detail = 'Weryfikacja nie powiodła się. Sprawdź poprawność danych.'
       } else if (json?.code === 'TOO_LATE_TO_CANCEL') {
         detail = 'Nie można anulować rezerwacji mniej niż 24 godziny przed terminem.'
+      } else if (json?.code === 'RATE_LIMITED' || json?.code === 'TOO_MANY_REQUESTS') {
+        detail = 'Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.'
       }
     } catch {
       // ignore parsing errors
+      if (status === 429) {
+        detail = 'Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.'
+      }
     }
     throw new Error(detail)
   }

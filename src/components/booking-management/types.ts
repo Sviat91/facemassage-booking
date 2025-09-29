@@ -12,6 +12,8 @@ export type ManagementState =
   | 'not-found'
   | 'time-change-success'
   | 'time-change-error'
+  | 'cancel-success'
+  | 'cancel-error'
 
 export interface BookingResult {
   eventId: string
