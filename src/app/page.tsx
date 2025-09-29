@@ -94,6 +94,18 @@ export default function Page() {
     bookingManagementRef.current?.close()
   }
 
+  // Универсальная функция для сброса всего календаря к начальному состоянию
+  const resetToInitialState = () => {
+    setProcId(undefined)
+    setDate(undefined)
+    setSelectedSlot(null)
+    setHasScrolledToCalendar(false)
+    setHasScrolledToSlots(false)
+    setHasScrolledToBooking(false)
+    setCalendarMode('booking')
+    queryClient.invalidateQueries({ queryKey: ['day-slots'] })
+  }
+
   return (
     <main className="p-6 relative flex-1 flex flex-col justify-center">
       <ThemeToggle />
@@ -154,7 +166,11 @@ export default function Page() {
               {/* BookingForm только на десктопе */}
               {calendarMode === 'booking' && selectedSlot && (
                 <Card title="Rezerwacja" className="lg:max-w-sm hidden lg:block" ref={bookingRef}>
-                  <BookingForm slot={selectedSlot} procedureId={procId} />
+                  <BookingForm 
+                    slot={selectedSlot} 
+                    procedureId={procId}
+                    onSuccess={resetToInitialState}
+                  />
                 </Card>
               )}
             </div>
@@ -194,7 +210,11 @@ export default function Page() {
                 className="lg:hidden max-w-md transform transition-all duration-500 ease-in-out animate-fade-in-up" 
                 ref={mobileBookingRef}
               >
-                <BookingForm slot={selectedSlot} procedureId={procId} />
+                <BookingForm 
+                  slot={selectedSlot} 
+                  procedureId={procId}
+                  onSuccess={resetToInitialState}
+                />
               </Card>
             )}
           </div>

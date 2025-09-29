@@ -252,6 +252,11 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
 
     const handleToggle = () => {
       if (state.isOpen) {
+        // При закрытии панели - сбрасываем календарь если была активна сессия изменения времени
+        if (state.timeChangeSession || state.wasEditing) {
+          console.log('🔙 Closing BookingManagement panel - resetting calendar state')
+          resetCalendarState()
+        }
         actions.closePanel()
       } else {
         actions.togglePanel()
@@ -379,9 +384,10 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     // Заглушка - эта функция больше не используется
     // const handleBackToProcedure = () => { ... }
 
-    // Возврат к выбору типа изменения - очищаем сессию времени
+    // Возврат к выбору типа изменения - очищаем сессию времени и сбрасываем календарь
     const handleBackToEditSelection = () => {
-      console.log('🔙 Going back to edit selection - clearing time change session')
+      console.log('🔙 Going back to edit selection - clearing time change session and resetting calendar')
+      resetCalendarState()
       actions.clearTimeChange()
       actions.setState('edit-selection')
       actions.setActionError(null)
