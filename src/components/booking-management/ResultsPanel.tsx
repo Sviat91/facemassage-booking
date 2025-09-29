@@ -52,7 +52,7 @@ export default function ResultsPanel({
   const displayPhone = searchCriteria?.phone || 'nieznany'
   
   return (
-    <div className="h-[18rem] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+    <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="space-y-2">
         <div className="text-sm text-neutral-700 dark:text-dark-text font-medium">
           Znalezione rezerwacje dla: <span className="text-primary dark:text-accent">{displayName}</span>, tel. <span className="text-primary dark:text-accent">{displayPhone}</span>

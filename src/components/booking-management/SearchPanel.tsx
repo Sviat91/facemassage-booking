@@ -27,7 +27,7 @@ export default function SearchPanel({
   turnstileRequired,
 }: SearchPanelProps) {
   return (
-    <div className="max-h-[70vh] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+    <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="text-sm text-neutral-600 dark:text-dark-muted">
         Wprowadź swoje dane, aby znaleźć rezerwację:
       </div>

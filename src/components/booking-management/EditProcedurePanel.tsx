@@ -28,7 +28,7 @@ export default function EditProcedurePanel({
   const isSameOrShorter = durationDiff <= 0
 
   return (
-    <div className="h-[18rem] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" role="dialog" aria-label="Zmiana procedury">
+    <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" role="dialog" aria-label="Zmiana procedury">
       <div className="text-sm text-neutral-600 dark:text-dark-muted">
         Wybierz nową procedurę dla rezerwacji:
       </div>
