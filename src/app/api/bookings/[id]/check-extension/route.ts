@@ -203,14 +203,78 @@ export async function POST(
 
     // STEP 7: Check if can extend at current time
     const newEnd = new Date(currentStart.getTime() + (newDuration * 60 * 1000))
+    
+    // Check for conflicts with other bookings
     const hasConflict = otherBookings.some((busy: { start: string; end: string }) => {
       const busyStart = new Date(busy.start).getTime()
       const busyEnd = new Date(busy.end).getTime()
       return (currentStart.getTime() < busyEnd && newEnd.getTime() > busyStart)
     })
 
-    if (!hasConflict) {
-      log.info({ message: '✅ STEP 7: Can extend at same time!' })
+    if (hasConflict) {
+      log.warn({ message: '❌ STEP 7: Cannot extend - time conflict with another booking' })
+    } else {
+      log.info({ message: '✅ No booking conflicts detected' })
+    }
+
+    // STEP 8: Check if new end time is within working hours
+    // Normalize hours format: replace dots and spaces with colons (Google Sheets returns "09.00" or "09 00")
+    const normalizedHours = hours.replace(/(\d{1,2})[.\s]+(\d{2})/g, '$1:$2')
+    
+    // Parse working hours (format: "HH:MM-HH:MM")
+    const scheduleMatch = normalizedHours.match(/(\d{1,2}):(\d{2})[–-](\d{1,2}):(\d{2})/)
+    if (!scheduleMatch) {
+      log.error({ hours, message: '❌ Cannot parse working hours format' })
+      return NextResponse.json<CheckExtensionResponse>({
+        result: {
+          status: 'no_availability',
+          message: 'Nie można odczytać godzin pracy.'
+        },
+        currentBooking: {
+          startISO: body.currentStartISO,
+          endISO: body.currentEndISO,
+        },
+        newProcedure: {
+          id: newProcedure.id,
+          name: newProcedure.name_pl,
+          duration: newProcedure.duration_min,
+        }
+      })
+    }
+
+    const [, , , endHourStr, endMinStr] = scheduleMatch
+    
+    // Create schedule end using fromZonedTime (same approach as getDaySlots)
+    const scheduleEndStr = `${dateISO}T${endHourStr.padStart(2, '0')}:${endMinStr.padStart(2, '0')}:00`
+    const scheduleEnd = fromZonedTime(scheduleEndStr, TZ)
+    
+    const newEndLocal = toZonedTime(newEnd, TZ)
+    const withinSchedule = newEnd.getTime() <= scheduleEnd.getTime()
+    
+    // Convert to minutes for easier comparison (like in availability.ts)
+    const scheduleEndMinutes = parseInt(endHourStr) * 60 + parseInt(endMinStr)
+    const newEndMinutes = newEndLocal.getHours() * 60 + newEndLocal.getMinutes()
+
+    log.info({
+      workingHoursRaw: hours,
+      workingHoursNormalized: normalizedHours,
+      dateISO,
+      scheduleEndStr,
+      scheduleEndTime: scheduleEnd.toISOString(),
+      scheduleEndMinutes: `${Math.floor(scheduleEndMinutes / 60)}:${scheduleEndMinutes % 60} (${scheduleEndMinutes} min)`,
+      currentStartTime: currentStart.toISOString(),
+      currentStartLocal: currentStartLocal.toISOString(),
+      newEndTime: newEnd.toISOString(),
+      newEndLocalTime: newEndLocal.toISOString(),
+      newEndMinutes: `${Math.floor(newEndMinutes / 60)}:${newEndMinutes % 60} (${newEndMinutes} min)`,
+      comparison: `${newEndMinutes} <= ${scheduleEndMinutes} = ${newEndMinutes <= scheduleEndMinutes}`,
+      withinSchedule,
+      withinScheduleTimestamp: `${newEnd.getTime()} <= ${scheduleEnd.getTime()}`,
+      message: '🕐 STEP 8: Check working hours boundary'
+    })
+
+    if (!hasConflict && withinSchedule) {
+      log.info({ message: '✅ STEP 8: Can extend at same time!' })
       return NextResponse.json<CheckExtensionResponse>({
         result: {
           status: 'can_extend',
@@ -228,13 +292,22 @@ export async function POST(
       })
     }
 
-    log.warn({ message: '❌ STEP 7: Cannot extend - time conflict detected' })
+    // Cannot extend - either conflict or outside working hours
+    const reason = hasConflict 
+      ? 'konflikt z innym terminem' 
+      : 'nowa procedura wykracza poza godziny pracy'
     
-    // For now, return no_availability - we'll add shift logic later
+    log.warn({ 
+      hasConflict, 
+      withinSchedule, 
+      reason,
+      message: '❌ STEP 9: Cannot extend at same time' 
+    })
+    
     return NextResponse.json<CheckExtensionResponse>({
       result: {
         status: 'no_availability',
-        message: `Nie można wydłużyć wizyty na aktualny czas. Wybierz nowy termin z kalendarza.`
+        message: `Nie można wydłużyć wizyty na aktualny czas (${reason}). Wybierz nowy termin z kalendarza.`
       },
       currentBooking: {
         startISO: body.currentStartISO,
