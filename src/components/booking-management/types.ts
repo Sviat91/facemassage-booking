@@ -40,6 +40,18 @@ export interface ProcedureOption {
   price_pln: number
 }
 
+// Extension check result types
+export type ExtensionCheckStatus = 'can_extend' | 'can_shift_back' | 'no_availability' | 'checking' | null
+
+export interface ExtensionCheckResult {
+  status: 'can_extend' | 'can_shift_back' | 'no_availability'
+  message: string
+  // For shift_back scenario
+  suggestedStartISO?: string
+  suggestedEndISO?: string
+  alternativeSlots?: Array<{ startISO: string; endISO: string }>
+}
+
 export interface SlotSelection {
   startISO: string
   endISO: string

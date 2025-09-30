@@ -220,6 +220,62 @@ export async function updateBooking(
   }
 }
 
+// Проверка возможности увеличения длительности процедуры
+export async function checkProcedureExtension(
+  booking: BookingResult,
+  newProcedureId: string,
+  turnstileToken?: string,
+): Promise<{
+  result: {
+    status: 'can_extend' | 'can_shift_back' | 'no_availability'
+    message: string
+    suggestedStartISO?: string
+    suggestedEndISO?: string
+    alternativeSlots?: Array<{ startISO: string; endISO: string }>
+  }
+  currentBooking: {
+    startISO: string
+    endISO: string
+  }
+  newProcedure: {
+    id: string
+    name: string
+    duration: number
+  }
+}> {
+  console.log('🔍 Checking procedure extension availability:', {
+    eventId: booking.eventId,
+    newProcedureId,
+  })
+
+  const body = {
+    turnstileToken,
+    eventId: booking.eventId,
+    currentStartISO: booking.startTime.toISOString(),
+    currentEndISO: booking.endTime.toISOString(),
+    newProcedureId,
+  }
+
+  const response = await fetch(`/api/bookings/${booking.eventId}/check-extension`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    let detail = 'Nie udało się sprawdzić dostępności.'
+    try {
+      const json = (await response.json()) as { error?: string }
+      if (json?.error) detail = json.error
+    } catch {
+      // ignore
+    }
+    throw new Error(detail)
+  }
+
+  return await response.json()
+}
+
 // Простая функция для изменения процедуры - без валидации
 export async function updateBookingProcedure(
   booking: BookingResult,

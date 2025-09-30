@@ -24,6 +24,8 @@ import type {
   ProcedureOption,
   SearchFormData,
   SlotSelection,
+  ExtensionCheckStatus,
+  ExtensionCheckResult,
 } from './types'
 
 interface PanelRendererProps {
@@ -74,6 +76,12 @@ interface PanelRendererProps {
   onCheckAvailability: () => void
   procedureChangeError: string | null
   procedureChangeSubmitting: boolean
+  // Новые пропсы для проверки доступности
+  extensionCheckStatus?: ExtensionCheckStatus
+  extensionCheckResult?: ExtensionCheckResult | null
+  selectedAlternativeSlot?: SlotSelection | null
+  onSelectAlternativeSlot?: (slot: SlotSelection) => void
+  onConfirmAlternativeSlot?: () => void
 }
 
 export default function PanelRenderer(props: PanelRendererProps) {
@@ -125,6 +133,11 @@ export default function PanelRenderer(props: PanelRendererProps) {
     onCheckAvailability,
     procedureChangeError,
     procedureChangeSubmitting,
+    extensionCheckStatus,
+    extensionCheckResult,
+    selectedAlternativeSlot,
+    onSelectAlternativeSlot,
+    onConfirmAlternativeSlot,
   } = props
 
   switch (state) {
@@ -202,6 +215,11 @@ export default function PanelRenderer(props: PanelRendererProps) {
           onRequestNewTime={onRequestNewTime}
           onCheckAvailability={onCheckAvailability}
           isSubmitting={procedureChangeSubmitting}
+          extensionCheckStatus={extensionCheckStatus}
+          extensionCheckResult={extensionCheckResult}
+          selectedAlternativeSlot={selectedAlternativeSlot}
+          onSelectAlternativeSlot={onSelectAlternativeSlot}
+          onConfirmAlternativeSlot={onConfirmAlternativeSlot}
         />
       )
     case 'edit-datetime':

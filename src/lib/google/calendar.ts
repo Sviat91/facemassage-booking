@@ -1,7 +1,7 @@
 import { getClients } from './auth'
 import { config } from '../env'
 
-export type BusyInterval = { start: string; end: string } // ISO strings
+export type BusyInterval = { start: string; end: string; id?: string } // ISO strings
 
 export interface BookingData {
   firstName: string
@@ -28,6 +28,31 @@ export async function freeBusy(timeMin: string, timeMax: string) {
   const cal = res.data.calendars?.[config.GOOGLE_CALENDAR_ID]
   const busy = (cal?.busy ?? []) as BusyInterval[]
   return busy
+}
+
+/**
+ * Get detailed busy times with event IDs for a date range
+ * This is more detailed than freeBusy() and includes event IDs
+ */
+export async function getBusyTimesWithIds(timeMin: string, timeMax: string): Promise<BusyInterval[]> {
+  const { calendar } = getClients()
+  const res = await calendar.events.list({
+    calendarId: config.GOOGLE_CALENDAR_ID,
+    timeMin,
+    timeMax,
+    timeZone: 'Europe/Warsaw',
+    singleEvents: true,
+    orderBy: 'startTime',
+  })
+  
+  const events = res.data.items ?? []
+  return events
+    .filter(event => event.start?.dateTime && event.end?.dateTime)
+    .map(event => ({
+      start: event.start!.dateTime!,
+      end: event.end!.dateTime!,
+      id: event.id ?? undefined,
+    }))
 }
 
 export async function createEvent(params: {

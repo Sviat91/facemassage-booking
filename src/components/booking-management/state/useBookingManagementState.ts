@@ -6,6 +6,8 @@ import type {
   SearchFormData,
   SlotSelection,
   TimeChangeSession,
+  ExtensionCheckResult,
+  ExtensionCheckStatus,
 } from '../types'
 
 // State interface
@@ -29,6 +31,11 @@ export interface BookingManagementState {
   
   // Time Change Session - простой кеш для изменения времени
   timeChangeSession: TimeChangeSession | null
+  
+  // Extension Check - результат проверки доступности для длинных процедур
+  extensionCheckStatus: ExtensionCheckStatus
+  extensionCheckResult: ExtensionCheckResult | null
+  selectedAlternativeSlot: SlotSelection | null
   
   // Action State
   actionError: string | null
@@ -59,6 +66,10 @@ export type BookingManagementAction =
   | { type: 'START_TIME_CHANGE'; payload: TimeChangeSession }
   | { type: 'SET_TIME_CHANGE_SLOT'; payload: SlotSelection }
   | { type: 'CLEAR_TIME_CHANGE' }
+  | { type: 'SET_EXTENSION_CHECK_STATUS'; payload: ExtensionCheckStatus }
+  | { type: 'SET_EXTENSION_CHECK_RESULT'; payload: ExtensionCheckResult | null }
+  | { type: 'SELECT_ALTERNATIVE_SLOT'; payload: SlotSelection | null }
+  | { type: 'CLEAR_EXTENSION_CHECK' }
 
 // Initial state
 const initialState: BookingManagementState = {
@@ -72,6 +83,9 @@ const initialState: BookingManagementState = {
   selectedProcedure: null,
   pendingSlot: null,
   timeChangeSession: null,
+  extensionCheckStatus: null,
+  extensionCheckResult: null,
+  selectedAlternativeSlot: null,
   actionError: null,
   turnstileToken: null,
 }
@@ -231,13 +245,39 @@ function bookingManagementReducer(
         } : null,
         state: 'confirm-time-change',
       }
-
+      
     case 'CLEAR_TIME_CHANGE':
       return {
         ...state,
         timeChangeSession: null,
-        selectedProcedure: null,
         pendingSlot: null,
+      }
+
+    case 'SET_EXTENSION_CHECK_STATUS':
+      return {
+        ...state,
+        extensionCheckStatus: action.payload,
+      }
+
+    case 'SET_EXTENSION_CHECK_RESULT':
+      return {
+        ...state,
+        extensionCheckResult: action.payload,
+        extensionCheckStatus: action.payload ? action.payload.status : null,
+      }
+
+    case 'SELECT_ALTERNATIVE_SLOT':
+      return {
+        ...state,
+        selectedAlternativeSlot: action.payload,
+      }
+
+    case 'CLEAR_EXTENSION_CHECK':
+      return {
+        ...state,
+        extensionCheckStatus: null,
+        extensionCheckResult: null,
+        selectedAlternativeSlot: null,
       }
 
     default:
@@ -267,6 +307,10 @@ export interface BookingManagementActions {
   startTimeChange: (session: TimeChangeSession) => void
   setTimeChangeSlot: (slot: SlotSelection) => void
   clearTimeChange: () => void
+  setExtensionCheckStatus: (status: ExtensionCheckStatus) => void
+  setExtensionCheckResult: (result: ExtensionCheckResult | null) => void
+  selectAlternativeSlot: (slot: SlotSelection | null) => void
+  clearExtensionCheck: () => void
 }
 
 // Main hook
@@ -295,6 +339,10 @@ export function useBookingManagementState() {
     startTimeChange: useCallback((session: TimeChangeSession) => dispatch({ type: 'START_TIME_CHANGE', payload: session }), []),
     setTimeChangeSlot: useCallback((slot: SlotSelection) => dispatch({ type: 'SET_TIME_CHANGE_SLOT', payload: slot }), []),
     clearTimeChange: useCallback(() => dispatch({ type: 'CLEAR_TIME_CHANGE' }), []),
+    setExtensionCheckStatus: useCallback((status: ExtensionCheckStatus) => dispatch({ type: 'SET_EXTENSION_CHECK_STATUS', payload: status }), []),
+    setExtensionCheckResult: useCallback((result: ExtensionCheckResult | null) => dispatch({ type: 'SET_EXTENSION_CHECK_RESULT', payload: result }), []),
+    selectAlternativeSlot: useCallback((slot: SlotSelection | null) => dispatch({ type: 'SELECT_ALTERNATIVE_SLOT', payload: slot }), []),
+    clearExtensionCheck: useCallback(() => dispatch({ type: 'CLEAR_EXTENSION_CHECK' }), []),
   }
 
   return {

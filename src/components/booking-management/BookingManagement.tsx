@@ -12,6 +12,7 @@ import {
   updateBooking,
   updateBookingProcedure,
   cancelBooking,
+  checkProcedureExtension,
 } from './api/bookingManagementApi'
 import type { ProceduresResponse } from './api/bookingManagementApi'
 import type {
@@ -158,6 +159,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       onSuccess: () => {
         console.log('✅ Procedure updated successfully')
         actions.setActionError(null)
+        actions.clearExtensionCheck() // Очищаем проверку после успешного сохранения
         actions.setState('procedure-change-success')
       },
       onError: (error) => {
@@ -178,6 +180,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       },
       onSuccess: () => {
         actions.setActionError(null)
+        actions.clearExtensionCheck() // Очищаем проверку после успешного комбинированного изменения
         actions.setState('results')
         actions.setPendingSlot(null)
         const token = siteKey ? (turnstileSession.turnstileToken ?? undefined) : undefined
@@ -321,6 +324,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       console.log('💆‍♀️ Starting procedure change flow')
       actions.setActionError(null)
       actions.selectProcedure(null)
+      actions.clearExtensionCheck() // Очищаем предыдущую проверку
       actions.setState('edit-procedure')
     }
 
@@ -377,6 +381,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     }
 
     const handleEditSelectionBack = () => {
+      actions.clearExtensionCheck() // Очищаем проверку при возврате
       actions.setState('results')
       actions.setActionError(null)
     }
@@ -385,13 +390,86 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     // const handleConfirmSameTime = () => { ... }
 
     const handleRequestNewTime = () => {
+      // Очищаем проверку доступности если была
+      actions.clearExtensionCheck()
       actions.setState('edit-datetime')
       actions.setPendingSlot(null)
     }
 
-    const handleCheckAvailability = () => {
-      actions.setState('edit-datetime')
-      actions.setPendingSlot(null)
+    // Обновленная логика проверки доступности для длинных процедур
+    const handleCheckAvailability = async () => {
+      if (!state.selectedBooking || !state.selectedProcedure) {
+        console.error('❌ No booking or procedure selected!')
+        return
+      }
+      
+      console.log('🔍 Checking extension availability for:', state.selectedProcedure.name_pl)
+      
+      // Устанавливаем статус проверки
+      actions.setExtensionCheckStatus('checking')
+      actions.setActionError(null)
+      
+      try {
+        const token = turnstileSession.turnstileToken ?? undefined
+        console.log('🔍 Calling checkProcedureExtension with:', {
+          eventId: state.selectedBooking.eventId,
+          procedureId: state.selectedProcedure.id,
+          currentStart: state.selectedBooking.startTime.toISOString(),
+          currentEnd: state.selectedBooking.endTime.toISOString(),
+        })
+        
+        const response = await checkProcedureExtension(
+          state.selectedBooking,
+          state.selectedProcedure.id,
+          token
+        )
+        
+        console.log('✅ Extension check result:', response.result.status, response.result)
+        
+        // Сохраняем результат проверки
+        actions.setExtensionCheckResult(response.result)
+        
+      } catch (error) {
+        console.error('❌ Extension check failed:', error)
+        actions.setActionError(error instanceof Error ? error.message : 'Nie udało się sprawdzić dostępności')
+        actions.setExtensionCheckStatus(null)
+      }
+    }
+    
+    // Выбор альтернативного слота из списка
+    const handleSelectAlternativeSlot = (slot: SlotSelection) => {
+      console.log('📍 Selected alternative slot:', slot)
+      actions.selectAlternativeSlot(slot)
+    }
+    
+    // Подтверждение альтернативного слота (сдвиг назад или выбранный из списка)
+    const handleConfirmAlternativeSlot = () => {
+      if (!state.selectedBooking || !state.selectedProcedure) {
+        console.error('❌ No booking or procedure selected!')
+        return
+      }
+      
+      // Используем выбранный альтернативный слот или предложенный системой
+      const slotToUse = state.selectedAlternativeSlot || 
+        (state.extensionCheckResult?.suggestedStartISO && state.extensionCheckResult?.suggestedEndISO
+          ? {
+              startISO: state.extensionCheckResult.suggestedStartISO,
+              endISO: state.extensionCheckResult.suggestedEndISO,
+            }
+          : null)
+      
+      if (!slotToUse) {
+        console.error('❌ No alternative slot available!')
+        return
+      }
+      
+      console.log('✅ Confirming alternative slot:', slotToUse)
+      
+      // Используем updateMutation для комбинированного изменения (процедура + время)
+      updateMutation.mutate({
+        newProcedureId: state.selectedProcedure.id,
+        newSlot: slotToUse,
+      })
     }
 
     // Новая простая логика подтверждения слота
@@ -612,6 +690,11 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
                 onCheckAvailability={handleCheckAvailability}
                 procedureChangeError={state.actionError}
                 procedureChangeSubmitting={updateProcedureMutation.isPending}
+                extensionCheckStatus={state.extensionCheckStatus}
+                extensionCheckResult={state.extensionCheckResult}
+                selectedAlternativeSlot={state.selectedAlternativeSlot}
+                onSelectAlternativeSlot={handleSelectAlternativeSlot}
+                onConfirmAlternativeSlot={handleConfirmAlternativeSlot}
               />
             </div>
           </div>
