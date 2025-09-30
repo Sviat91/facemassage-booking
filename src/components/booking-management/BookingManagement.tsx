@@ -10,6 +10,7 @@ import {
   searchBookings,
   updateBookingTime,
   updateBooking,
+  updateBookingProcedure,
   cancelBooking,
 } from './api/bookingManagementApi'
 import type { ProceduresResponse } from './api/bookingManagementApi'
@@ -140,7 +141,33 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       },
     })
 
-    // Update mutation
+    // Мутация для изменения процедуры (M1 Step 2) - простая без валидации
+    const updateProcedureMutation = useMutation<void, MutationError, void>({
+      mutationFn: async () => {
+        if (!state.selectedBooking) {
+          throw new Error('Brak wybranej rezerwacji.')
+        }
+        if (!state.selectedProcedure) {
+          throw new Error('Wybierz procedurę.')
+        }
+        const token = turnstileSession.turnstileToken ?? undefined
+        console.log('🔄 Updating procedure:', state.selectedProcedure.name_pl)
+        // Используем простой эндпоинт без валидации (как updateBookingTime)
+        await updateBookingProcedure(state.selectedBooking, state.selectedProcedure.id, token)
+      },
+      onSuccess: () => {
+        console.log('✅ Procedure updated successfully')
+        actions.setActionError(null)
+        actions.setState('procedure-change-success')
+      },
+      onError: (error) => {
+        console.error('❌ Procedure update failed:', error.message)
+        actions.setActionError(error.message)
+        actions.setState('procedure-change-error')
+      },
+    })
+
+    // Update mutation (для комбинированных изменений - процедура + время)
     const updateMutation = useMutation<void, MutationError, { newProcedureId?: string; newSlot?: SlotSelection }>({
       mutationFn: async (changes) => {
         if (!state.selectedBooking) {
@@ -302,10 +329,19 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       actions.selectProcedure(proc)
     }
 
-    // Stubs for next steps (wired for UI, logic added in later stages)
+    // M1 Step 2: Подтверждение изменения процедуры на тот же час
     const handleConfirmSameTime = () => {
-      console.log('✅ Confirm same time with new procedure (stub, to be implemented in next step)')
-      // Next step: go to 'confirm-change' panel and confirm via updateMutation
+      console.log('✅ Confirming procedure change on same time')
+      console.log('📋 Selected procedure:', state.selectedProcedure)
+      console.log('📋 Selected booking:', state.selectedBooking)
+      if (!state.selectedProcedure) {
+        console.warn('⚠️ No procedure selected!')
+        actions.setActionError('Wybierz procedurę')
+        return
+      }
+      actions.setActionError(null)
+      console.log('🚀 Transitioning to confirm-change state')
+      actions.setState('confirm-change')
     }
 
     // Новая простая логика изменения времени - сразу показываем direct-time-change панель
@@ -372,6 +408,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
 
     const handleBackToResults = () => {      
       actions.clearTimeChange() // Очищаем сессию при возврате
+      actions.selectProcedure(null) // Очищаем выбранную процедуру
       actions.setState('results')
       
       // Сбрасываем Turnstile для чистого старта
@@ -380,6 +417,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       }
       
       // Обновляем поиск при возврате к результатам
+      console.log('🔄 Refreshing search after successful change')
       const token = siteKey ? (turnstileSession.turnstileToken ?? undefined) : undefined
       if (token) turnstileSession.setTurnstileToken(token)
       searchMutation.mutate({ turnstileToken: token })
@@ -435,15 +473,31 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       actions.setActionError(null)
     }
 
+    // M1 Step 2: Подтверждение изменения процедуры
     const handleConfirmChange = () => {
-      if (!state.selectedBooking) return
-      if (state.pendingSlot) {
-        updateMutation.mutate({ newProcedureId: state.selectedProcedure?.id, newSlot: state.pendingSlot })
-      } else if (state.selectedProcedure?.id) {
-        updateMutation.mutate({ newProcedureId: state.selectedProcedure.id })
-      } else {
-        actions.setActionError('Wybierz procedurę lub termin do zmiany.')
+      console.log('💾 Confirming procedure change...')
+      console.log('📋 Booking:', state.selectedBooking?.eventId)
+      console.log('📋 New procedure:', state.selectedProcedure?.name_pl, state.selectedProcedure?.id)
+      
+      if (!state.selectedBooking) {
+        console.error('❌ No selected booking!')
+        return
       }
+      if (!state.selectedProcedure) {
+        console.error('❌ No selected procedure!')
+        actions.setActionError('Wybierz procedurę.')
+        return
+      }
+      // Вызываем мутацию для изменения процедуры (без смены времени)
+      console.log('🚀 Calling updateProcedureMutation...')
+      updateProcedureMutation.mutate()
+    }
+
+    // M1 Step 2: Возврат из confirm-change
+    const handleConfirmChangeBack = () => {
+      console.log('🔙 Going back from confirm-change to edit-procedure')
+      actions.setActionError(null)
+      actions.setState('edit-procedure')
     }
 
     // Простое подтверждение изменения времени - сначала сохраняем selectedSlot если нужно
@@ -575,6 +629,10 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
                 onConfirmSameTime={handleConfirmSameTime}
                 onRequestNewTime={handleRequestNewTime}
                 onCheckAvailability={handleCheckAvailability}
+                confirmChangeSubmitting={updateProcedureMutation.isPending}
+                confirmChangeError={state.actionError}
+                onConfirmChange={handleConfirmChange}
+                onConfirmChangeBack={handleConfirmChangeBack}
               />
             </div>
           </div>

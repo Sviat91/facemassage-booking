@@ -220,6 +220,51 @@ export async function updateBooking(
   }
 }
 
+// Простая функция для изменения процедуры - без валидации
+export async function updateBookingProcedure(
+  booking: BookingResult,
+  newProcedureId: string,
+  turnstileToken?: string,
+): Promise<void> {
+  console.log('🔄 Updating booking procedure:', {
+    eventId: booking.eventId,
+    oldProcedure: booking.procedureName,
+    newProcedureId,
+  })
+
+  // Payload с данными для сохранения (не для валидации)
+  const body = {
+    turnstileToken,
+    eventId: booking.eventId,
+    // Данные клиента для сохранения в записи
+    firstName: booking.firstName,
+    lastName: booking.lastName,
+    phone: booking.phone,
+    email: booking.email || '',
+    // Текущее время начала (для расчёта нового времени окончания)
+    currentStartISO: booking.startTime.toISOString(),
+    // Новая процедура
+    newProcedureId,
+  }
+  
+  const response = await fetch('/api/bookings/update-procedure', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  
+  if (!response.ok) {
+    let detail = 'Nie udało się zaktualizować procedury rezerwacji.'
+    try {
+      const json = (await response.json()) as { error?: string }
+      if (json?.error) detail = json.error
+    } catch {
+      // ignore
+    }
+    throw new Error(detail)
+  }
+}
+
 // Простая функция только для изменения времени - чистая архитектура
 export async function updateBookingTime(
   booking: BookingResult,

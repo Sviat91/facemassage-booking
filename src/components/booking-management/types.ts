@@ -37,6 +37,7 @@ export interface ProcedureOption {
   id: string
   name_pl: string
   duration_min: number
+  price_pln: number
 }
 
 export interface SlotSelection {

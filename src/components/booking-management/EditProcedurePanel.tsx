@@ -42,8 +42,17 @@ export default function EditProcedurePanel({
           <div className="text-sm font-medium dark:text-dark-text">
             {booking.procedureName}
           </div>
-          <div className="text-xs text-neutral-500 dark:text-dark-muted">
+          <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
             {currentDuration} min • {booking.price}zł
+          </div>
+          <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+            {new Intl.DateTimeFormat('pl-PL', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(booking.startTime)}
           </div>
         </div>
 
@@ -56,7 +65,7 @@ export default function EditProcedurePanel({
           >
             {selectedProcedure ? (
               <span className="block whitespace-normal break-words text-sm">
-                {selectedProcedure.name_pl} - {selectedProcedure.duration_min} min
+                {selectedProcedure.name_pl} • {selectedProcedure.duration_min} min • {selectedProcedure.price_pln}zł
               </span>
             ) : (
               <span className="text-neutral-500 dark:text-dark-muted text-sm">Wybierz nową procedurę</span>
@@ -99,8 +108,8 @@ export default function EditProcedurePanel({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm">{procedure.name_pl}</span>
-                        <span className="text-xs text-neutral-500 dark:text-dark-muted">
-                          {procedure.duration_min} min{isCurrent ? ' (obecna)' : ''}
+                        <span className="text-xs text-neutral-500 dark:text-dark-muted whitespace-nowrap">
+                          {procedure.duration_min} min • {procedure.price_pln}zł{isCurrent ? ' (obecna)' : ''}
                         </span>
                       </div>
                     </button>

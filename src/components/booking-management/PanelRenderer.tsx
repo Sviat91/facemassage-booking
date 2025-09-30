@@ -15,6 +15,9 @@ import TimeChangeErrorPanel from './TimeChangeErrorPanel'
 import CancelSuccessPanel from './CancelSuccessPanel'
 import CancelErrorPanel from './CancelErrorPanel'
 import EditProcedurePanel from './EditProcedurePanel'
+import ConfirmChangePanel from './ConfirmChangePanel'
+import ProcedureChangeSuccessPanel from './ProcedureChangeSuccessPanel'
+import ProcedureChangeErrorPanel from './ProcedureChangeErrorPanel'
 import type {
   BookingResult,
   ManagementState,
@@ -69,6 +72,10 @@ interface PanelRendererProps {
   onConfirmSameTime: () => void
   onRequestNewTime: () => void
   onCheckAvailability: () => void
+  confirmChangeSubmitting: boolean
+  confirmChangeError: string | null
+  onConfirmChange: () => void
+  onConfirmChangeBack: () => void
 }
 
 export default function PanelRenderer(props: PanelRendererProps) {
@@ -118,6 +125,10 @@ export default function PanelRenderer(props: PanelRendererProps) {
     onConfirmSameTime,
     onRequestNewTime,
     onCheckAvailability,
+    confirmChangeSubmitting,
+    confirmChangeError,
+    onConfirmChange,
+    onConfirmChangeBack,
   } = props
 
   switch (state) {
@@ -194,6 +205,26 @@ export default function PanelRenderer(props: PanelRendererProps) {
           onConfirmSameTime={onConfirmSameTime}
           onRequestNewTime={onRequestNewTime}
           onCheckAvailability={onCheckAvailability}
+        />
+      )
+    case 'confirm-change':
+      if (!selectedBooking) {
+        return (
+          <ErrorFallbackPanel
+            onRetry={onBackToSearch}
+            onContactMaster={onContactMaster}
+          />
+        )
+      }
+      return (
+        <ConfirmChangePanel
+          booking={selectedBooking}
+          newProcedure={selectedProcedure}
+          newSlot={null}
+          isSubmitting={confirmChangeSubmitting}
+          errorMessage={confirmChangeError}
+          onConfirm={onConfirmChange}
+          onBack={onConfirmChangeBack}
         />
       )
     case 'edit-datetime':
@@ -330,6 +361,46 @@ export default function PanelRenderer(props: PanelRendererProps) {
           errorMessage={confirmTimeChangeError}
           onBackToResults={onBackToResults}
           onTryAgain={onRetryTimeChange}
+        />
+      )
+    case 'procedure-change-success':
+      if (!selectedBooking || !selectedProcedure) {
+        return (
+          <ErrorFallbackPanel
+            onRetry={onBackToSearch}
+            onContactMaster={onContactMaster}
+          />
+        )
+      }
+      return (
+        <ProcedureChangeSuccessPanel
+          booking={selectedBooking}
+          newProcedure={selectedProcedure}
+          onBackToResults={onBackToResults}
+        />
+      )
+    case 'procedure-change-error':
+      if (!selectedBooking) {
+        return (
+          <ErrorFallbackPanel
+            onRetry={onBackToSearch}
+            onContactMaster={onContactMaster}
+          />
+        )
+      }
+      return (
+        <ProcedureChangeErrorPanel
+          booking={selectedBooking}
+          newProcedure={selectedProcedure}
+          errorMessage={confirmChangeError ?? 'Wystąpił nieznany błąd.'}
+          onRetry={() => {
+            // Вернуться к confirm-change для повторной попытки
+            if (selectedProcedure) {
+              onConfirmChangeBack()
+            }
+          }}
+          onBackToResults={onBackToResults}
+          onContactMaster={onContactMaster}
         />
       )
     default:
