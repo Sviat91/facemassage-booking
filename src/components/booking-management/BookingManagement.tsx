@@ -410,8 +410,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       actions.setActionError(null)
       
       try {
-        const token = turnstileSession.turnstileToken ?? undefined
-        console.log('🔍 Calling checkProcedureExtension with:', {
+        console.log('🔍 Calling checkProcedureExtension (no Turnstile):', {
           eventId: state.selectedBooking.eventId,
           procedureId: state.selectedProcedure.id,
           currentStart: state.selectedBooking.startTime.toISOString(),
@@ -420,8 +419,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
         
         const response = await checkProcedureExtension(
           state.selectedBooking,
-          state.selectedProcedure.id,
-          token
+          state.selectedProcedure.id
         )
         
         console.log('✅ Extension check result:', response.result.status, response.result)

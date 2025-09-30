@@ -221,10 +221,10 @@ export async function updateBooking(
 }
 
 // Проверка возможности увеличения длительности процедуры
+// NO TURNSTILE - user already verified during search
 export async function checkProcedureExtension(
   booking: BookingResult,
   newProcedureId: string,
-  turnstileToken?: string,
 ): Promise<{
   result: {
     status: 'can_extend' | 'can_shift_back' | 'no_availability'
@@ -243,13 +243,12 @@ export async function checkProcedureExtension(
     duration: number
   }
 }> {
-  console.log('🔍 Checking procedure extension availability:', {
+  console.log('🔍 Checking procedure extension availability (no Turnstile):', {
     eventId: booking.eventId,
     newProcedureId,
   })
 
   const body = {
-    turnstileToken,
     eventId: booking.eventId,
     currentStartISO: booking.startTime.toISOString(),
     currentEndISO: booking.endTime.toISOString(),

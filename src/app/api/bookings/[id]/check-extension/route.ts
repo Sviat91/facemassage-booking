@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { validateTurnstileForAPI } from '../../../../../lib/turnstile'
-import { getClients } from '../../../../../lib/google/auth'
 import { getBusyTimesWithIds } from '../../../../../lib/google/calendar'
-import { getDaySlots } from '../../../../../lib/availability'
 import { readProcedures, readWeekly, readExceptions } from '../../../../../lib/google/sheets'
-import { config } from '../../../../../lib/env'
 import { getLogger } from '../../../../../lib/logger'
 import { reportError } from '../../../../../lib/sentry'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
@@ -17,7 +13,6 @@ const log = getLogger({ module: 'api.bookings.check-extension' })
 
 // Input validation schema
 const CheckExtensionSchema = z.object({
-  turnstileToken: z.string().optional(),
   eventId: z.string().min(1),
   currentStartISO: z.string(),
   currentEndISO: z.string(),
@@ -56,12 +51,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   let body: z.infer<typeof CheckExtensionSchema>
-  let ip = '0.0.0.0'
 
   try {
     const eventId = params.id
     body = CheckExtensionSchema.parse(await req.json())
-    ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip
 
     const TZ = 'Europe/Warsaw'
     const currentStart = new Date(body.currentStartISO)
@@ -75,19 +68,8 @@ export async function POST(
       currentStartISO: body.currentStartISO,
       currentEndISO: body.currentEndISO,
       newProcedureId: body.newProcedureId,
-      message: '🔍 STEP 1: Parse input data'
+      message: '🔍 STEP 1: Parse input data (no Turnstile - user already verified during search)'
     })
-
-    // Validate Turnstile
-    if (body.turnstileToken) {
-      const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip)
-      if (!turnstileResult.success) {
-        return NextResponse.json(
-          { error: 'Nieprawidłowy token bezpieczeństwa.' },
-          { status: 400 }
-        )
-      }
-    }
 
     // Get new procedure info
     const procedures = await readProcedures()
