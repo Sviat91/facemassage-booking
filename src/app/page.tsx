@@ -138,7 +138,7 @@ export default function Page() {
   }
 
   return (
-    <main className="p-6 relative flex-1 flex flex-col justify-center w-full max-w-full box-border overflow-x-hidden">
+    <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col justify-center w-full max-w-full box-border overflow-x-hidden">
       <ThemeToggle />
 
       <div className="absolute left-4 top-4 z-10 hidden lg:block" onClick={closeBookingManagement}>
@@ -160,13 +160,13 @@ export default function Page() {
         />
       </div>
       {/* основной центрированный контейнер */}
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto w-full max-w-5xl px-0">
         <BrandHeader onLogoClick={closeBookingManagement} />
-        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[1fr,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
+        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
           {/* На мобильных - услуги сверху, на десктопе - справа */}
           <div className="lg:order-2">
-            <div className="space-y-4 w-full max-w-sm">
-              <Card title="Usługa" className="lg:max-w-sm" ref={procedureRef}>
+            <div className="space-y-4 w-full max-w-sm mx-auto">
+              <Card title="Usługa" className="!px-2 !py-3 sm:!px-4 sm:!py-4" ref={procedureRef}>
                 <ProcedureSelect
                   onChange={(p) => {
                     setProcId(p?.id)
@@ -208,7 +208,7 @@ export default function Page() {
               </div>
               {/* BookingForm только на десктопе */}
               {calendarMode === 'booking' && selectedSlot && !showBookingSuccess && (
-                <Card title="Rezerwacja" className="lg:max-w-sm hidden lg:block" ref={bookingRef}>
+                <Card title="Rezerwacja" className="hidden lg:block !px-2 !py-3 sm:!px-4 sm:!py-4" ref={bookingRef}>
                   <BookingForm 
                     slot={selectedSlot} 
                     procedureId={procId}
@@ -219,7 +219,7 @@ export default function Page() {
               
               {/* Success панель только на десктопе */}
               {showBookingSuccess && successBookingData && (
-                <Card title="Rezerwacja" className="lg:max-w-sm hidden lg:block" ref={bookingRef}>
+                <Card title="Rezerwacja" className="hidden lg:block !px-2 !py-3 sm:!px-4 sm:!py-4" ref={bookingRef}>
                   <BookingSuccessPanel
                     slot={successBookingData.slot}
                     procedureId={successBookingData.procedureId}
@@ -234,8 +234,8 @@ export default function Page() {
           </div>
           
           {/* На мобильных - календарь после услуг, на десктопе - слева */}
-          <div className="lg:order-1 space-y-6">
-            <Card className="max-w-md mx-auto" ref={calendarRef}>
+          <div className="lg:order-1 space-y-6 w-full max-w-sm mx-auto lg:max-w-none lg:mx-0">
+            <Card className="!px-2 !py-3 sm:!px-4 sm:!py-4" ref={calendarRef}>
               <DayCalendar
                 key={`calendar-${procId ?? 'none'}`}
                 procedureId={procId}
@@ -264,7 +264,7 @@ export default function Page() {
             {calendarMode === 'booking' && selectedSlot && !showBookingSuccess && (
               <Card 
                 title="Rezerwacja" 
-                className="lg:hidden max-w-md transform transition-all duration-500 ease-in-out animate-fade-in-up" 
+                className="lg:hidden !px-2 !py-3 sm:!px-4 sm:!py-4 transform transition-all duration-500 ease-in-out animate-fade-in-up" 
                 ref={mobileBookingRef}
               >
                 <BookingForm 
@@ -279,7 +279,7 @@ export default function Page() {
             {showBookingSuccess && successBookingData && (
               <Card 
                 title="Rezerwacja" 
-                className="lg:hidden max-w-md transform transition-all duration-500 ease-in-out animate-fade-in-up" 
+                className="lg:hidden !px-2 !py-3 sm:!px-4 sm:!py-4 transform transition-all duration-500 ease-in-out animate-fade-in-up" 
                 ref={mobileBookingRef}
               >
                 <BookingSuccessPanel

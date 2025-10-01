@@ -147,6 +147,20 @@ body::before {
   max-width: 100% !important;
   border-collapse: collapse !important;
   margin: 0 auto !important;
+  table-layout: fixed !important;
+}
+
+/* Центрирование таблицы на мобильных устройствах */
+@media (max-width: 640px) {
+  .rdp-table {
+    width: calc(var(--rdp-cell-size) * 7) !important;
+  }
+  
+  .rdp-month {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
 }
 
 .rdp-head_cell,
@@ -275,4 +289,3 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     min-width: 0 !important;
   }
 }
-
