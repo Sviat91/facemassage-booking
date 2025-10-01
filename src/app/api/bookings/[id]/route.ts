@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { validateTurnstileForAPI } from '../../../../lib/turnstile'
+import { getClients } from '../../../../lib/google/auth'
+import { config } from '../../../../lib/env'
 import { 
-  getAndValidateBooking, 
-  updateBookingInCalendar, 
-  deleteBookingFromCalendar,
+  updateBookingInCalendar,
   validateTimeSlotAvailability,
   getProcedureInfo,
   prepareUpdatedDescription
 } from '../../../../lib/booking-modification-helpers'
-import { BookingErrors } from '../../../../lib/booking-helpers'
 import { getLogger } from '../../../../lib/logger'
 import { reportError } from '../../../../lib/sentry'
 
@@ -17,17 +15,9 @@ export const runtime = 'nodejs'
 
 const log = getLogger({ module: 'api.bookings.modify' })
 
-// PATCH - Update booking schema
+// PATCH - Update booking schema (SIMPLIFIED - no user validation)
+// User is already validated during search, we trust the eventId
 const UpdateBookingSchema = z.object({
-  // Authentication
-  turnstileToken: z.string().optional(),
-  
-  // User verification
-  firstName: z.string().min(1).max(50),
-  lastName: z.string().min(1).max(50),
-  phone: z.string().min(5).max(20),
-  email: z.string().email().optional().or(z.literal('')),
-  
   // Changes (at least one must be provided)
   newStartISO: z.string().optional(),
   newEndISO: z.string().optional(),
@@ -37,16 +27,7 @@ const UpdateBookingSchema = z.object({
   { message: 'At least one change (newStartISO, newEndISO, or newProcedureId) must be provided' }
 )
 
-// DELETE - Cancel booking schema
-const CancelBookingSchema = z.object({
-  turnstileToken: z.string().optional(),
-  
-  // User verification
-  firstName: z.string().min(1).max(50),
-  lastName: z.string().min(1).max(50),  
-  phone: z.string().min(5).max(20),
-  email: z.string().email().optional().or(z.literal('')),
-})
+// This file now only handles PATCH (updates) - cancellation moved to /api/bookings/cancel
 
 // Helper functions moved to booking-modification-helpers.ts
 
@@ -65,53 +46,50 @@ export async function PATCH(
     body = UpdateBookingSchema.parse(await req.json())
     ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip
 
-    log.debug({ 
+    log.info({ 
       ip, 
       eventId,
-      firstName: body.firstName,
-      lastName: body.lastName,
       hasNewTime: !!(body.newStartISO || body.newEndISO),
       hasNewProcedure: !!body.newProcedureId,
-    }, 'Booking update request')
+      message: '🔄 Booking update request (NO validation - user already verified during search)'
+    })
 
-    // Validate Turnstile
-    const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip)
-    if (!turnstileResult.success) {
-      log.warn({ ip, eventId, reason: turnstileResult.errorResponse?.code }, 'Turnstile validation failed for update')
+    // NO TURNSTILE - user already verified during search
+    // NO getAndValidateBooking - we trust the eventId from search results
+    
+    // Simply get the existing event to read current data
+    const { calendar } = getClients()
+    let existingEvent
+    try {
+      existingEvent = await calendar.events.get({
+        calendarId: config.GOOGLE_CALENDAR_ID,
+        eventId: eventId,
+      })
+    } catch (error: any) {
+      log.error({ eventId, error: error.message }, 'Failed to fetch existing event')
       return NextResponse.json(
-        turnstileResult.errorResponse,
-        { status: turnstileResult.status }
+        { error: 'Booking not found', code: 'BOOKING_NOT_FOUND' },
+        { status: 404 }
       )
     }
 
-    // Get and validate existing booking
-    const validationResult = await getAndValidateBooking(eventId, {
-      firstName: body.firstName,
-      lastName: body.lastName,
-      phone: body.phone,
-      email: body.email,
-    }, ip)
-
-    if (!validationResult.success) {
-      return NextResponse.json(
-        validationResult.error,
-        { status: validationResult.status }
-      )
-    }
-
-    const { existingEvent, existingBooking } = validationResult
-    if (!existingEvent || !existingBooking) {
+    if (!existingEvent.data || !existingEvent.data.start?.dateTime || !existingEvent.data.end?.dateTime) {
       return NextResponse.json(
         { error: 'Invalid booking data', code: 'INVALID_BOOKING_DATA' },
         { status: 500 }
       )
     }
 
+    const existingBooking = {
+      startTime: new Date(existingEvent.data.start.dateTime),
+      endTime: new Date(existingEvent.data.end.dateTime),
+    }
+
     // Prepare update data
     let newStartISO = body.newStartISO || existingBooking.startTime.toISOString()
     let newEndISO = body.newEndISO || existingBooking.endTime.toISOString()
-    let newSummary = existingEvent.summary || ''
-    let newDescription = existingEvent.description || ''
+    let newSummary = existingEvent.data.summary || ''
+    let newDescription = existingEvent.data.description || ''
 
     // If procedure is changing, get new procedure info and update duration
     if (body.newProcedureId) {
@@ -135,6 +113,13 @@ export async function PATCH(
 
       // Update description with new price
       newDescription = prepareUpdatedDescription(newDescription, newProcedure.price_pln || 0)
+      
+      log.info({
+        procedureName: newProcedure.name_pl,
+        duration: newProcedure.duration_min,
+        price: newProcedure.price_pln,
+        message: '💰 Procedure changed - price will be updated in description'
+      })
     }
 
     // Validate time slot availability (excluding current booking)
@@ -213,107 +198,4 @@ export async function PATCH(
   }
 }
 
-/**
- * DELETE - Cancel existing booking
- */
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  let body: z.infer<typeof CancelBookingSchema> | null = null
-  let ip = '0.0.0.0'
-
-  try {
-    const eventId = params.id
-    body = CancelBookingSchema.parse(await req.json())
-    ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || ip
-
-    log.debug({ 
-      ip, 
-      eventId,
-      firstName: body.firstName,
-      lastName: body.lastName,
-    }, 'Booking cancellation request')
-
-    // Validate Turnstile
-    const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip)
-    if (!turnstileResult.success) {
-      log.warn({ ip, eventId, reason: turnstileResult.errorResponse?.code }, 'Turnstile validation failed for cancellation')
-      return NextResponse.json(
-        turnstileResult.errorResponse,
-        { status: turnstileResult.status }
-      )
-    }
-
-    // Get and validate existing booking
-    const validationResult = await getAndValidateBooking(eventId, {
-      firstName: body.firstName,
-      lastName: body.lastName,
-      phone: body.phone,
-      email: body.email,
-    }, ip)
-
-    if (!validationResult.success) {
-      // Use TOO_LATE_TO_CANCEL instead of TOO_LATE_TO_MODIFY for cancellation
-      if (validationResult.error === BookingErrors.TOO_LATE_TO_MODIFY) {
-        return NextResponse.json(
-          { error: 'Cannot cancel booking less than 24 hours before appointment', code: 'TOO_LATE_TO_CANCEL' },
-          { status: 400 }
-        )
-      }
-      return NextResponse.json(
-        validationResult.error,
-        { status: validationResult.status }
-      )
-    }
-
-    const { existingBooking } = validationResult
-    if (!existingBooking) {
-      return NextResponse.json(
-        { error: 'Invalid booking data', code: 'INVALID_BOOKING_DATA' },
-        { status: 500 }
-      )
-    }
-
-    // Delete the event from calendar
-    const deleteResult = await deleteBookingFromCalendar(eventId, ip)
-    if (!deleteResult.success) {
-      return NextResponse.json(
-        deleteResult.error,
-        { status: deleteResult.status }
-      )
-    }
-
-    log.info({ ip, eventId, procedureName: existingBooking.procedureName }, 'Booking cancelled successfully')
-
-    const response_final = NextResponse.json({ 
-      success: true, 
-      eventId,
-      cancelledBooking: {
-        procedureName: existingBooking.procedureName,
-        startTime: existingBooking.startTime.toISOString(),
-        endTime: existingBooking.endTime.toISOString(),
-      }
-    })
-    response_final.headers.set('Cache-Control', 'no-store')
-    return response_final
-
-  } catch (err: any) {
-    const isValidationError = err instanceof z.ZodError
-    
-    if (isValidationError) {
-      const issuePaths = err.issues?.map(issue => (issue.path.length ? issue.path.join('.') : '(root)')) ?? []
-      log.warn({ ip, eventId: params?.id, issuePaths }, 'Booking cancellation validation failed')
-    } else {
-      log.error({ err, ip, eventId: params?.id }, 'Booking cancellation handler failed')
-      await reportError(err, {
-        tags: { module: 'api.bookings.cancel' },
-        extras: { ip, eventId: params?.id },
-      })
-    }
-
-    const details = isValidationError ? JSON.stringify(err.issues) : String(err?.message || err)
-    const status = isValidationError ? 400 : 500
-    return NextResponse.json({ error: 'Failed to cancel booking', details }, { status })
-  }
-}
+// DELETE method moved to /api/bookings/cancel for better architecture
