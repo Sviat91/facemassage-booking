@@ -270,6 +270,8 @@ export default function PanelRenderer(props: PanelRendererProps) {
           />
         )
       }
+      // Определяем, меняется ли процедура
+      const isProcedureChange = timeChangeSession.selectedProcedure.name_pl !== timeChangeSession.originalBooking.procedureName
       return (
         <DirectTimeChangePanel
           booking={timeChangeSession.originalBooking}
@@ -281,6 +283,7 @@ export default function PanelRenderer(props: PanelRendererProps) {
           onConfirm={onConfirmTimeChange}
           onBack={onConfirmTimeChangeBack}
           canConfirm={!!(selectedSlot || timeChangeSession.newSlot)}
+          newProcedure={isProcedureChange ? timeChangeSession.selectedProcedure : null}
         />
       )
     case 'confirm-cancel':

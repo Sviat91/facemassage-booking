@@ -1,5 +1,5 @@
 "use client"
-import type { BookingResult, SlotSelection } from './types'
+import type { BookingResult, SlotSelection, ProcedureOption } from './types'
 
 interface DirectTimeChangePanelProps {
   booking: BookingResult
@@ -12,6 +12,7 @@ interface DirectTimeChangePanelProps {
   onBack: () => void
   canConfirm: boolean
   // NO TURNSTILE - user already verified during search
+  newProcedure?: ProcedureOption | null // Если меняем процедуру
 }
 
 export default function DirectTimeChangePanel({
@@ -24,6 +25,7 @@ export default function DirectTimeChangePanel({
   onConfirm,
   onBack,
   canConfirm,
+  newProcedure = null,
 }: DirectTimeChangePanelProps) {
   const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
     hour: '2-digit',
@@ -71,9 +73,23 @@ export default function DirectTimeChangePanel({
 
       {/* Procedure info */}
       <div className="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-dark-border dark:bg-dark-border/30">
-        <div className="font-medium text-neutral-800 dark:text-dark-text mb-3">
-          {booking.procedureName}
-        </div>
+        {newProcedure ? (
+          <div className="mb-3">
+            <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">Zmiana procedury:</div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-neutral-600 dark:text-neutral-400 line-through">{booking.procedureName}</span>
+              <span className="text-neutral-400 dark:text-neutral-500">→</span>
+              <span className="font-medium text-neutral-800 dark:text-dark-text">{newProcedure.name_pl}</span>
+            </div>
+            <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+              {newProcedure.duration_min} min • {newProcedure.price_pln}zł
+            </div>
+          </div>
+        ) : (
+          <div className="font-medium text-neutral-800 dark:text-dark-text mb-3">
+            {booking.procedureName}
+          </div>
+        )}
         
         {/* Current time - RED */}
         <div className="space-y-2">
