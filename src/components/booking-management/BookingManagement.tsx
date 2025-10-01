@@ -30,6 +30,7 @@ interface BookingManagementProps {
   onDateReset?: () => void
   onCalendarModeChange?: (mode: CalendarMode) => void
   onSlotSelected?: (slot: SlotSelection) => void
+  onPanelOpenChange?: (isOpen: boolean) => void
 }
 
 interface MutationError {
@@ -46,6 +47,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       onDateReset,
       onCalendarModeChange,
       onSlotSelected,
+      onPanelOpenChange,
     },
     ref,
   ) => {
@@ -328,6 +330,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
           turnstileSession.removeWidget()
         }
         actions.closePanel()
+        onPanelOpenChange?.(false)
       } else {
         actions.togglePanel()
         // Гарантируем рендер Turnstile при открытии панели
@@ -337,6 +340,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
         if (siteKey && turnstileSession.turnstileToken) {
           actions.setFormError(null)
         }
+        onPanelOpenChange?.(true)
       }
     }
 

@@ -28,6 +28,10 @@ export default function Page() {
   const [hasScrolledToCalendar, setHasScrolledToCalendar] = useState(false)
   const [hasScrolledToSlots, setHasScrolledToSlots] = useState(false)
   const [hasScrolledToBooking, setHasScrolledToBooking] = useState(false)
+  const [hasScrolledToManagement, setHasScrolledToManagement] = useState(false)
+  
+  // Флаг для отслеживания открытия панели управления
+  const [isManagementOpen, setIsManagementOpen] = useState(false)
 
   // Refs для автоскролла
   const procedureRef = useRef<HTMLDivElement>(null)
@@ -36,6 +40,7 @@ export default function Page() {
   const bookingRef = useRef<HTMLDivElement>(null)
   const mobileBookingRef = useRef<HTMLDivElement>(null)
   const bookingManagementRef = useRef<BookingManagementRef>(null)
+  const bookingManagementCardRef = useRef<HTMLDivElement>(null)
 
   // Функция плавного скролла - только на мобильных устройствах
   const scrollToElement = (ref: React.RefObject<HTMLDivElement>, offset = 0) => {
@@ -95,6 +100,19 @@ export default function Page() {
       }, 600)
     }
   }, [selectedSlot, calendarMode, hasScrolledToBooking])
+  
+  // Автоскролл при открытии панели управления - только один раз и только на мобильных
+  useEffect(() => {
+    if (isManagementOpen && !hasScrolledToManagement) {
+      setTimeout(() => {
+        scrollToElement(bookingManagementCardRef, -20)
+        setHasScrolledToManagement(true)
+      }, 300)
+    } else if (!isManagementOpen) {
+      // Сбрасываем флаг когда панель закрывается
+      setHasScrolledToManagement(false)
+    }
+  }, [isManagementOpen, hasScrolledToManagement])
   const closeBookingManagement = () => {
     bookingManagementRef.current?.close()
   }
@@ -164,27 +182,30 @@ export default function Page() {
                   }}
                 />
               </Card>
-              <BookingManagement
-                ref={bookingManagementRef}
-                selectedDate={date}
-                selectedSlot={selectedSlot}
-                procedureId={procId}
-                onProcedureChange={(newProcId) => {
-                  setProcId(newProcId)
-                  setDate(undefined)
-                  setSelectedSlot(null)
-                  queryClient.invalidateQueries({ queryKey: ['day-slots'] })
-                }}
-                onDateReset={() => {
-                  setDate(undefined)
-                  setSelectedSlot(null)
-                }}
-                onCalendarModeChange={(mode) => {
-                  setCalendarMode(mode)
-                  setHasScrolledToBooking(false)
-                }}
-                onSlotSelected={(slot) => setSelectedSlot(slot)}
-              />
+              <div ref={bookingManagementCardRef}>
+                <BookingManagement
+                  ref={bookingManagementRef}
+                  selectedDate={date}
+                  selectedSlot={selectedSlot}
+                  procedureId={procId}
+                  onPanelOpenChange={setIsManagementOpen}
+                  onProcedureChange={(newProcId) => {
+                    setProcId(newProcId)
+                    setDate(undefined)
+                    setSelectedSlot(null)
+                    queryClient.invalidateQueries({ queryKey: ['day-slots'] })
+                  }}
+                  onDateReset={() => {
+                    setDate(undefined)
+                    setSelectedSlot(null)
+                  }}
+                  onCalendarModeChange={(mode) => {
+                    setCalendarMode(mode)
+                    setHasScrolledToBooking(false)
+                  }}
+                  onSlotSelected={(slot) => setSelectedSlot(slot)}
+                />
+              </div>
               {/* BookingForm только на десктопе */}
               {calendarMode === 'booking' && selectedSlot && !showBookingSuccess && (
                 <Card title="Rezerwacja" className="lg:max-w-sm hidden lg:block" ref={bookingRef}>
