@@ -162,7 +162,7 @@ export default function Page() {
       {/* основной центрированный контейнер */}
       <div className="mx-auto w-full max-w-5xl px-0">
         <BrandHeader onLogoClick={closeBookingManagement} />
-        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[1fr,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
+        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
           {/* На мобильных - услуги сверху, на десктопе - справа */}
           <div className="lg:order-2">
             <div className="space-y-4 w-full max-w-sm mx-auto">
@@ -234,7 +234,7 @@ export default function Page() {
           </div>
           
           {/* На мобильных - календарь после услуг, на десктопе - слева */}
-          <div className="lg:order-1 space-y-6 w-full max-w-sm mx-auto lg:max-w-md">
+          <div className="lg:order-1 space-y-6 w-full max-w-sm mx-auto lg:max-w-none lg:mx-0">
             <Card className="!px-2 !py-3 sm:!px-4 sm:!py-4" ref={calendarRef}>
               <DayCalendar
                 key={`calendar-${procId ?? 'none'}`}
