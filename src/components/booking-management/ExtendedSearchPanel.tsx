@@ -68,7 +68,7 @@ export default function ExtendedSearchPanel({
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="np. Jan Kowalski"
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
           />
         </div>
         
@@ -82,7 +82,7 @@ export default function ExtendedSearchPanel({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="np. 123456789"
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
           />
         </div>
         
@@ -96,7 +96,7 @@ export default function ExtendedSearchPanel({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="np. jan@example.com"
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
           />
         </div>
         
@@ -117,7 +117,7 @@ export default function ExtendedSearchPanel({
                 onChange={(e) => setStartDate(e.target.value)}
                 min={minDateStr}
                 max={maxDateStr}
-                className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm dark:border-amber-600 dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full max-w-full box-border px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm dark:border-amber-600 dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
             
@@ -131,7 +131,7 @@ export default function ExtendedSearchPanel({
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate || minDateStr}
                 max={maxDateStr}
-                className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm dark:border-amber-600 dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full max-w-full box-border px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm dark:border-amber-600 dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
           </div>

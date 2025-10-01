@@ -99,7 +99,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             onChange={(e) => setFullName(e.target.value)}
             placeholder="np. Jan Kowalski"
             disabled={isSubmitting}
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
         
@@ -127,7 +127,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             onChange={(e) => setEmail(e.target.value)}
             placeholder="np. jan@example.com"
             disabled={isSubmitting}
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
         
@@ -142,7 +142,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             placeholder="Opisz swoje pytanie lub problem..."
             rows={5}
             disabled={isSubmitting}
-            className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
           />
           <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
             Minimum 10 znaków

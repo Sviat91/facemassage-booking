@@ -761,11 +761,11 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
             </div>
           )}
           <div
-            className={`transition-all duration-200 ease-out ${
+            className={`transition-all duration-200 ease-out w-full max-w-full ${
               state.isOpen ? 'opacity-100 mt-2' : 'max-h-0 opacity-0 overflow-hidden'
             }`}
           >
-            <div className={`rounded-xl border border-border bg-white/90 p-4 dark:border-dark-border dark:bg-dark-card/90 ${state.isOpen ? 'max-h-[35rem] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent' : ''}`}>
+            <div className={`rounded-xl border border-border bg-white/90 p-4 dark:border-dark-border dark:bg-dark-card/90 w-full max-w-full box-border ${state.isOpen ? 'max-h-[35rem] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent' : ''}`}>
               <PanelRenderer
                 state={state.state}
                 form={state.form}
