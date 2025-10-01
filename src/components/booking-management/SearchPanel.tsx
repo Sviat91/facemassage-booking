@@ -34,7 +34,7 @@ export default function SearchPanel({
 
       <div className="space-y-3">
         <input
-          className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted"
+          className="w-full max-w-full box-border rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted"
           placeholder="Imię i nazwisko"
           value={form.fullName}
           onChange={(event) => onFormChange({ fullName: event.target.value })}
@@ -49,7 +49,7 @@ export default function SearchPanel({
         />
 
         <input
-          className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted"
+          className="w-full max-w-full box-border rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted"
           placeholder="E-mail (opcjonalnie)"
           type="email"
           value={form.email}
