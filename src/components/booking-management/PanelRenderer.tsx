@@ -18,6 +18,7 @@ import EditProcedurePanel from './EditProcedurePanel'
 import ConfirmChangePanel from './ConfirmChangePanel'
 import ProcedureChangeSuccessPanel from './ProcedureChangeSuccessPanel'
 import ProcedureChangeErrorPanel from './ProcedureChangeErrorPanel'
+import ExtendedSearchPanel from './ExtendedSearchPanel'
 import type {
   BookingResult,
   ManagementState,
@@ -51,6 +52,8 @@ interface PanelRendererProps {
   onChangeProcedure: () => void
   onEditDatetimeBack: () => void
   onExtendSearch: () => void
+  onExtendedSearchSubmit: (fullName: string, phone: string, email: string, startDate: string, endDate: string) => void
+  onExtendedSearchBack: () => void
   selectedDate?: Date
   selectedSlot?: SlotSelection | null
   onConfirmSlot: () => void
@@ -108,6 +111,8 @@ export default function PanelRenderer(props: PanelRendererProps) {
     onChangeProcedure,
     onEditDatetimeBack,
     onExtendSearch,
+    onExtendedSearchSubmit,
+    onExtendedSearchBack,
     selectedDate,
     selectedSlot,
     onConfirmSlot,
@@ -176,6 +181,17 @@ export default function PanelRenderer(props: PanelRendererProps) {
           onRetry={onBackToSearch}
           onExtendSearch={onExtendSearch}
           onContactMaster={onContactMaster}
+        />
+      )
+    case 'extended-search':
+      return (
+        <ExtendedSearchPanel
+          initialFullName={form.fullName}
+          initialPhone={form.phone}
+          initialEmail={form.email}
+          onSearch={onExtendedSearchSubmit}
+          onBack={onExtendedSearchBack}
+          isSearching={searchPending}
         />
       )
     case 'edit-selection':

@@ -83,14 +83,21 @@ export async function searchBookings(
   form: SearchFormData,
   procedures: ProcedureOption[],
   turnstileToken?: string,
+  dateRange?: { start: string; end: string },
 ): Promise<BookingResult[]> {
   const { firstName, lastName } = splitFullName(form.fullName)
   
-  console.log('🔍 Searching for:', { firstName, lastName, phone: form.phone })
+  console.log('🔍 Searching for:', { firstName, lastName, phone: form.phone, dateRange })
 
   // Fetch ALL calendar events for the period, then filter on client
   // Add force=true to bypass cache for new searches
-  const response = await fetch('/api/bookings/all?force=true')
+  // Add dateRange if provided for extended search
+  let url = '/api/bookings/all?force=true'
+  if (dateRange) {
+    // API expects 'start' and 'end' parameters (not 'startDate' and 'endDate')
+    url += `&start=${dateRange.start}&end=${dateRange.end}`
+  }
+  const response = await fetch(url)
   
   if (!response.ok) {
     throw new Error('Nie udało się pobrać danych z kalendarza')

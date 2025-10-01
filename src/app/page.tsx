@@ -111,21 +111,30 @@ export default function Page() {
       <ThemeToggle />
       {/* фиксированный логотип в левом верхнем углу - скрыт на мобильных */}
       <div className="absolute left-4 top-4 z-10 hidden lg:block" onClick={closeBookingManagement}>
+        {/* Светлая тема */}
         <Image
           src="/head_logo.png"
           alt="Logo Somique Beauty"
           width={242}  // +~10%
           height={97}
-          className="h-auto cursor-pointer"
+          className="h-auto cursor-pointer dark:hidden"
+        />
+        {/* Темная тема */}
+        <Image
+          src="/head_logo_night.png"
+          alt="Logo Somique Beauty"
+          width={242}  // +~10%
+          height={97}
+          className="h-auto cursor-pointer hidden dark:block"
         />
       </div>
       {/* основной центрированный контейнер */}
       <div className="mx-auto max-w-5xl">
         <BrandHeader onLogoClick={closeBookingManagement} />
-        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,384px] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
+        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[1fr,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
           {/* На мобильных - услуги сверху, на десктопе - справа */}
-          <div className="lg:order-2 lg:pl-2">
-            <div className="space-y-4 lg:max-w-sm">
+          <div className="lg:order-2">
+            <div className="space-y-4 w-full max-w-sm">
               <Card title="Usługa" className="lg:max-w-sm" ref={procedureRef}>
                 <ProcedureSelect
                   onChange={(p) => {
@@ -178,7 +187,7 @@ export default function Page() {
           
           {/* На мобильных - календарь после услуг, на десктопе - слева */}
           <div className="lg:order-1 space-y-6">
-            <Card className="max-w-md lg:max-w-none" ref={calendarRef}>
+            <Card className="max-w-md mx-auto" ref={calendarRef}>
               <DayCalendar
                 key={`calendar-${procId ?? 'none'}`}
                 procedureId={procId}

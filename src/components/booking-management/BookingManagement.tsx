@@ -127,9 +127,9 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     }, [state.form.fullName, state.form.phone, siteKey, turnstileSession.turnstileToken])
 
     // Search mutation
-    const searchMutation = useMutation<typeof state.results, MutationError, { turnstileToken?: string }>({
-      mutationFn: async ({ turnstileToken: providedToken } = {}) => {
-        return searchBookings(state.form, procedures, providedToken)
+    const searchMutation = useMutation<typeof state.results, MutationError, { turnstileToken?: string; dateRange?: { start: string; end: string } }>({
+      mutationFn: async ({ turnstileToken: providedToken, dateRange } = {}) => {
+        return searchBookings(state.form, procedures, providedToken, dateRange)
       },
       onMutate: () => {
         actions.startSearch()
@@ -590,8 +590,36 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     }, [actions])
 
     const handleExtendSearch = useCallback(() => {
-      console.log('Extended search requested')
-    }, [])
+      console.log('Opening extended search panel')
+      actions.setState('extended-search')
+    }, [actions])
+    
+    const handleExtendedSearchSubmit = useCallback((
+      fullName: string, 
+      phone: string, 
+      email: string, 
+      startDate: string, 
+      endDate: string
+    ) => {
+      console.log('Extended search submitted:', { fullName, phone, email, startDate, endDate })
+      
+      // Обновляем форму с новыми данными
+      actions.updateForm({ fullName, phone, email })
+      
+      // Выполняем поиск с расширенным диапазоном дат
+      actions.setState('loading')
+      
+      const token = turnstileSession.turnstileToken ?? undefined
+      searchMutation.mutate({
+        turnstileToken: token,
+        dateRange: { start: startDate, end: endDate }
+      })
+    }, [actions, searchMutation, turnstileSession])
+    
+    const handleExtendedSearchBack = useCallback(() => {
+      console.log('Going back from extended search')
+      actions.setState('not-found')
+    }, [actions])
 
     // Заглушка - эта функция больше не используется
     // const handleBackToProcedure = () => { ... }
@@ -744,6 +772,8 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
                 onChangeProcedure={handleSelectChangeProcedure}
                 onEditDatetimeBack={handleBackToEditSelection}
                 onExtendSearch={handleExtendSearch}
+                onExtendedSearchSubmit={handleExtendedSearchSubmit}
+                onExtendedSearchBack={handleExtendedSearchBack}
                 selectedDate={selectedDate}
                 selectedSlot={selectedSlot}
                 onConfirmSlot={handleConfirmSlot}

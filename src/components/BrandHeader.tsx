@@ -23,12 +23,21 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
         className={`block lg:hidden mt-3 mb-2 px-4${logoClickable ? ' cursor-pointer' : ''}`}
         onClick={onLogoClick}
       >
+        {/* Светлая тема */}
         <Image
           src="/head_logo.png"
           alt="Logo Somique Beauty"
           width={200}
           height={80}
-          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto"
+          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto dark:hidden"
+        />
+        {/* Темная тема */}
+        <Image
+          src="/head_logo_night.png"
+          alt="Logo Somique Beauty"
+          width={200}
+          height={80}
+          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto hidden dark:block"
         />
       </div>
       
