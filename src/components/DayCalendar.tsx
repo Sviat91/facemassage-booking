@@ -139,7 +139,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
   return (
     <div className="relative overflow-visible w-full max-w-full box-border" onClick={handleContainerClick}>
       {/* Custom Header with Navigation */}
-      <div className="flex items-center justify-between px-2 pb-3">
+      <div className="flex items-center justify-between pb-3">
         <button
           type="button"
           aria-label="Poprzedni miesiąc"
