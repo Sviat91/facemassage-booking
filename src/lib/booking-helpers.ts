@@ -2,6 +2,8 @@ import { parseBookingData } from './google/calendar'
 import { getDaySlots } from './availability'
 import { readProcedures } from './google/sheets'
 import { getLogger } from './logger'
+import { normalizePhoneDigitsOnly } from './utils/phone-normalization'
+import { normalizeTextWithCyrillicConversion } from './utils/string-normalization'
 
 const logger = getLogger({ module: 'booking-helpers' })
 
@@ -12,21 +14,18 @@ const logger = getLogger({ module: 'booking-helpers' })
 
 /**
  * Normalize strings for comparison - handles cyrillic/latin conversion
+ * @deprecated Use normalizeTextWithCyrillicConversion from utils/string-normalization instead
  */
 export function normalizeString(str: string): string {
-  return str.toLowerCase().trim()
-    // Convert common cyrillic to latin equivalents
-    .replace(/а/g, 'a').replace(/е/g, 'e').replace(/о/g, 'o')
-    .replace(/р/g, 'p').replace(/с/g, 'c').replace(/у/g, 'y')
-    .replace(/х/g, 'x').replace(/к/g, 'k').replace(/м/g, 'm')
-    .replace(/н/g, 'h').replace(/в/g, 'b').replace(/т/g, 't')
+  return normalizeTextWithCyrillicConversion(str)
 }
 
 /**
  * Normalize phone number for matching (remove all non-digits)
+ * @deprecated Use normalizePhoneDigitsOnly from utils/phone-normalization instead
  */
 export function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, '')
+  return normalizePhoneDigitsOnly(phone)
 }
 
 /**
