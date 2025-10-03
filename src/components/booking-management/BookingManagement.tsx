@@ -50,7 +50,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     const { data: proceduresData } = useQuery<ProceduresResponse>({
       queryKey: ['procedures'],
       queryFn: fetchProcedures,
-      staleTime: 5 * 60 * 1000,
+      staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
     })
     const procedures = proceduresData?.items ?? []
 

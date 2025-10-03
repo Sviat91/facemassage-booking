@@ -6,6 +6,7 @@ import BookingSuccess from './BookingSuccess'
 import BookingConsentModal from './BookingConsentModal'
 import { useBookingSubmit, type Slot } from './hooks/useBookingSubmit'
 import { fullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
+import { validateName, validatePhone, validateEmail, validateTurnstileToken } from '@/lib/validation/client-validators'
 
 type Procedure = { id: string; name_pl: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
@@ -24,6 +25,11 @@ export default function BookingForm({
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   
+  // Validation errors
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  
   // Consent state
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false)
   const [termsConsent, setTermsConsent] = useState(false)
@@ -38,6 +44,7 @@ export default function BookingForm({
   const { data: proceduresData } = useQuery<ProceduresResponse>({
     queryKey: ['procedures'],
     queryFn: () => fetch('/api/procedures').then(r => r.json() as Promise<ProceduresResponse>),
+    staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
 
   const selectedProcedure = useMemo(() => {
@@ -111,11 +118,33 @@ export default function BookingForm({
 
   // Validation
   const canSubmit = useMemo(() => {
-    const phoneDigits = phone.replace(/\D/g, '')
-    const hasValidPhone = phoneDigits.length >= 9
-    const basic = name.trim().length >= 2 && hasValidPhone && !loading
-    return siteKey ? basic && !!tsToken : basic
-  }, [name, phone, loading, siteKey, tsToken])
+    const nameValid = validateName(name).valid
+    const phoneValid = validatePhone(phone).valid
+    const emailValid = !email || validateEmail(email).valid
+    const tokenValid = !siteKey || validateTurnstileToken(tsToken).valid
+    
+    return nameValid && phoneValid && emailValid && tokenValid && !loading
+  }, [name, phone, email, loading, siteKey, tsToken])
+  
+  // Validate on blur
+  const handleNameBlur = () => {
+    const result = validateName(name)
+    setNameError(result.valid ? null : result.error || null)
+  }
+  
+  const handlePhoneBlur = () => {
+    const result = validatePhone(phone)
+    setPhoneError(result.valid ? null : result.error || null)
+  }
+  
+  const handleEmailBlur = () => {
+    if (!email) {
+      setEmailError(null)
+      return
+    }
+    const result = validateEmail(email)
+    setEmailError(result.valid ? null : result.error || null)
+  }
 
   // Format dates
   const startDate = useMemo(() => new Date(slot.startISO), [slot.startISO])
@@ -193,23 +222,44 @@ export default function BookingForm({
         <div className="text-sm">{terminLabel}</div>
       </div>
       <div className="space-y-2">
-        <input 
-          className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" 
-          placeholder="Imię i nazwisko" 
-          value={name} 
-          onChange={e => setName(e.target.value)}
-        />
-        <PhoneInput 
-          value={phone} 
-          onChange={setPhone} 
-          placeholder="Telefon"
-        />
-        <input 
-          className="w-full rounded-xl border border-border bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted" 
-          placeholder="E-mail (opcjonalnie)" 
-          value={email} 
-          onChange={e => setEmail(e.target.value)} 
-        />
+        <div>
+          <input 
+            className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted`}
+            placeholder="Imię i nazwisko" 
+            value={name} 
+            onChange={e => { setName(e.target.value); if (nameError) setNameError(null); }}
+            onBlur={handleNameBlur}
+          />
+          {nameError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{nameError}</div>}
+        </div>
+        <div>
+          <PhoneInput 
+            value={phone} 
+            onChange={(val) => { 
+              setPhone(val); 
+              if (phoneError) setPhoneError(null);
+              // Validate after 500ms of no typing
+              setTimeout(() => {
+                const result = validatePhone(val);
+                if (!result.valid && val.length > 0) {
+                  setPhoneError(result.error || null);
+                }
+              }, 500);
+            }}
+            placeholder="Telefon"
+          />
+          {phoneError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{phoneError}</div>}
+        </div>
+        <div>
+          <input 
+            className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted`}
+            placeholder="E-mail (opcjonalnie)" 
+            value={email} 
+            onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
+            onBlur={handleEmailBlur}
+          />
+          {emailError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</div>}
+        </div>
       </div>
       {siteKey && (
         <div className="mt-3">

@@ -16,6 +16,7 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
   const { data: proceduresData } = useQuery<ProceduresResponse>({
     queryKey: ['procedures'],
     queryFn: () => fetch('/api/procedures').then(r => r.json() as Promise<ProceduresResponse>),
+    staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
 
   const selectedProcedure = useMemo(() => {

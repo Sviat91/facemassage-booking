@@ -22,7 +22,7 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
       if (!res.ok) throw new Error(`Failed: ${res.status}`)
       return res.json()
     },
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000, // 5 minutes - slots can change frequently
   })
 
   const slots = useMemo(() => (data?.slots ?? []) as { startISO: string; endISO: string }[], [data])
