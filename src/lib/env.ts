@@ -43,6 +43,11 @@ const env = EnvSchema.parse(process.env)
 
 export const config = {
   ...env,
+  // Explicitly export master-specific IDs for better type safety
+  GOOGLE_CALENDAR_ID: env.GOOGLE_CALENDAR_ID,
+  GOOGLE_SHEET_ID: env.GOOGLE_SHEET_ID,
+  GOOGLE_CALENDAR_ID_JULI: env.GOOGLE_CALENDAR_ID_JULI,
+  GOOGLE_SHEET_ID_JULI: env.GOOGLE_SHEET_ID_JULI,
   TURNSTILE_SECRET_EFFECTIVE: env.TURNSTILE_SECRET || env.TURNSTILE_SECRET_KEY,
   GOOGLE_SERVICE_ACCOUNT: parseServiceAccount(env.GOOGLE_APPLICATION_CREDENTIALS_JSON),
   SHEET_TABS: {
@@ -50,7 +55,7 @@ export const config = {
     EXCEPTIONS: 'Exceptions',
     PROCEDURES: 'PROCEDURES',
   },
-} as const
+}
 
 export type AppConfig = typeof config
 

@@ -1,6 +1,7 @@
 "use client"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
+import { MasterProvider } from '@/contexts/MasterContext'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const clientRef = useRef<QueryClient>()
@@ -19,6 +20,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     clientRef.current!.prefetchQuery({ queryKey: ['procedures'], queryFn: () => fetch('/api/procedures').then(r => r.json()) })
   }, [])
 
-  return <QueryClientProvider client={clientRef.current}>{children}</QueryClientProvider>
+  return (
+    <QueryClientProvider client={clientRef.current}>
+      <MasterProvider>
+        {children}
+      </MasterProvider>
+    </QueryClientProvider>
+  )
 }
 

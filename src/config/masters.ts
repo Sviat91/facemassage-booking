@@ -1,5 +1,3 @@
-import { config } from '@/lib/env'
-
 /**
  * Master configuration type
  */
@@ -7,8 +5,6 @@ export interface Master {
   id: string
   name: string
   avatar: string
-  calendarId: string
-  sheetId: string
 }
 
 /**
@@ -17,23 +13,20 @@ export interface Master {
 export type MasterId = 'olga' | 'juli'
 
 /**
- * Static master configuration
- * Each master has their own calendar and sheet
+ * Client-safe master configuration
+ * Only includes data needed on the client side
+ * Calendar and Sheet IDs are accessed server-side only
  */
 export const MASTERS: Record<MasterId, Master> = {
   olga: {
     id: 'olga',
     name: 'Olga',
     avatar: '/photo_master_olga.png',
-    calendarId: config.GOOGLE_CALENDAR_ID,
-    sheetId: config.GOOGLE_SHEET_ID,
   },
   juli: {
     id: 'juli',
     name: 'Juli',
     avatar: '/photo_master_juli.png',
-    calendarId: config.GOOGLE_CALENDAR_ID_JULI,
-    sheetId: config.GOOGLE_SHEET_ID_JULI,
   },
 } as const
 
