@@ -29,19 +29,20 @@ export default function Page({ params }: PageProps) {
   const { setMaster, selectedMasterId } = useMaster()
   const prefersReducedMotion = useReducedMotion()
   
-  // Validate masterId from URL
+  // Validate masterId from URL  
+  const masterId = params.masterId as MasterId
+  
   useEffect(() => {
-    if (!isValidMasterId(params.masterId)) {
+    if (!isValidMasterId(masterId)) {
       // Invalid master ID, redirect to home
       router.push('/')
       return
     }
     
-    // Set master if different from current
-    if (params.masterId !== selectedMasterId) {
-      setMaster(params.masterId as MasterId)
-    }
-  }, [params.masterId, selectedMasterId, setMaster, router])
+    // Set master if needed - setMaster now has early return if already selected
+    // This prevents unnecessary re-renders
+    setMaster(masterId)
+  }, [masterId, setMaster, router])
   
   // Don't render until master is validated
   if (!isValidMasterId(params.masterId)) {
@@ -257,7 +258,7 @@ export default function Page({ params }: PageProps) {
         <BrandHeader onLogoClick={closeBookingManagement} />
         <motion.div 
           className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : { 
             duration: 0.6, 

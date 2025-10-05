@@ -87,6 +87,12 @@ export const MasterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return
     }
 
+    // Skip if already selected (prevents unnecessary re-renders and animations)
+    if (masterId === selectedMasterId) {
+      clientLog.info('Master already selected:', masterId)
+      return
+    }
+
     clientLog.info('Changing master to:', masterId)
     
     // Update state
@@ -102,7 +108,7 @@ export const MasterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     queryClient.invalidateQueries({ queryKey: ['bookings'] })
     
     clientLog.info('Master changed successfully. Cache invalidated.')
-  }, [queryClient])
+  }, [queryClient, selectedMasterId])
 
   /**
    * Check if a specific master is currently selected

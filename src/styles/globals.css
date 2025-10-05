@@ -113,6 +113,23 @@ body::before {
   animation: fade-in-up 0.5s ease-in-out;
 }
 
+/* Booking content animation with delay */
+@keyframes fade-in-up-delayed {
+  0%, 45% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-booking-content {
+  animation: fade-in-up-delayed 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+
 /* React Day Picker custom overrides */
 .rdp {
   --rdp-cell-size: 40px;
