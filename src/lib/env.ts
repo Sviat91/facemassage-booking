@@ -19,8 +19,13 @@ function parseServiceAccount(jsonOrB64: string) {
 const EnvSchema = z.object({
   NODE_ENV: z.string().default('development'),
   GOOGLE_APPLICATION_CREDENTIALS_JSON: z.string(),
+  // Master Olga (default)
   GOOGLE_CALENDAR_ID: z.string(),
   GOOGLE_SHEET_ID: z.string(),
+  // Master Juli
+  GOOGLE_CALENDAR_ID_JULI: z.string(),
+  GOOGLE_SHEET_ID_JULI: z.string(),
+  // Shared
   USER_CONSENTS_GOOGLE_SHEET_ID: z.string(),
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string(),
