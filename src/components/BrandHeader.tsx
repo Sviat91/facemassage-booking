@@ -1,22 +1,41 @@
 "use client"
 import Image from 'next/image'
+import { motion } from 'framer-motion'
+import { useSelectedMaster } from '@/contexts/MasterContext'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface BrandHeaderProps {
   onLogoClick?: () => void
 }
 
 export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
+  const selectedMaster = useSelectedMaster()
   const logoClickable = typeof onLogoClick === 'function'
+  const prefersReducedMotion = useReducedMotion()
+  
   return (
     <header className="flex flex-col items-center gap-3 py-4 lg:py-6">
-      <div
+      <motion.div
+        layoutId={prefersReducedMotion ? undefined : `master-photo-${selectedMaster.id}`}
         className={`h-20 w-20 rounded-full overflow-hidden ring-2 ring-accent/70 shadow-sm bg-white${
           logoClickable ? ' cursor-pointer' : ''
         }`}
         onClick={onLogoClick}
+        transition={prefersReducedMotion ? { duration: 0 } : { 
+          type: "spring", 
+          stiffness: 200, 
+          damping: 25,
+          duration: 1.2
+        }}
       >
-        <Image src="/logo.png" alt="Logo Somique Beauty" width={80} height={80} className="h-20 w-20 object-cover" />
-      </div>
+        <Image 
+          src={selectedMaster.avatar} 
+          alt={`${selectedMaster.name} - Beauty Master`} 
+          width={80} 
+          height={80} 
+          className="h-20 w-20 object-cover" 
+        />
+      </motion.div>
       
       {/* head_logo показывается только на мобильных устройствах */}
       <div

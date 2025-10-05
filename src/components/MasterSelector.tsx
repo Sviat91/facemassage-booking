@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { getAllMasters, type MasterId } from '@/config/masters'
 import { useMaster } from '@/contexts/MasterContext'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 /**
  * Master Selector Component
@@ -14,6 +15,7 @@ export default function MasterSelector() {
   const router = useRouter()
   const { setMaster } = useMaster()
   const masters = getAllMasters()
+  const prefersReducedMotion = useReducedMotion()
 
   const handleMasterSelect = (masterId: MasterId) => {
     // Set master in context (saves to localStorage)
@@ -24,45 +26,55 @@ export default function MasterSelector() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+    <div className="flex flex-col items-center justify-center w-full max-w-4xl">
       {/* Title */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-12"
+        exit={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }}
+        className="text-center mb-6"
       >
-        <h1 className="text-4xl sm:text-5xl font-bold text-text dark:text-dark-text mb-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text dark:text-dark-text mb-2">
           Wybierz swojego mistrza
         </h1>
-        <p className="text-lg text-muted dark:text-dark-muted">
+        <p className="text-base sm:text-lg text-muted dark:text-dark-muted">
           Zarezerwuj wizytę u wybranego specjalisty
         </p>
       </motion.div>
 
       {/* Master Cards */}
-      <div className="flex flex-col portrait:flex-col landscape:flex-row gap-8 w-full max-w-4xl justify-center items-center">
+      <div className="flex flex-col portrait:flex-col landscape:flex-row gap-5 w-full max-w-3xl justify-center items-center">
         {masters.map((master, index) => (
           <motion.button
             key={master.id}
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ 
+            transition={prefersReducedMotion ? { duration: 0 } : { 
               duration: 0.5, 
               delay: index * 0.2,
               type: "spring",
               stiffness: 100 
             }}
-            whileHover={{ 
+            whileHover={prefersReducedMotion ? {} : { 
               scale: 1.05,
               transition: { duration: 0.2 }
             }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
             onClick={() => handleMasterSelect(master.id as MasterId)}
-            className="group relative w-full max-w-xs aspect-square rounded-3xl overflow-hidden shadow-2xl focus:outline-none focus:ring-4 focus:ring-accent/50 transition-all duration-300"
+            className="group relative w-full max-w-[260px] aspect-square rounded-3xl overflow-hidden shadow-2xl focus:outline-none focus:ring-4 focus:ring-accent/50 transition-all duration-300"
           >
-            {/* Master Photo */}
-            <div className="relative w-full h-full">
+            {/* Master Photo with layoutId for shared element transition */}
+            <motion.div 
+              layoutId={prefersReducedMotion ? undefined : `master-photo-${master.id}`}
+              className="relative w-full h-full"
+              transition={prefersReducedMotion ? { duration: 0 } : { 
+                type: "spring", 
+                stiffness: 200, 
+                damping: 25,
+                duration: 1.2
+              }}
+            >
               <Image
                 src={master.avatar}
                 alt={`${master.name} - Beauty Master`}
@@ -71,13 +83,21 @@ export default function MasterSelector() {
                 priority
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-              
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
-            </div>
+            </motion.div>
 
-            {/* Master Name */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+            {/* Gradient Overlay - fades out on exit */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+
+            {/* Master Name - fades out on exit */}
+            <motion.div 
+              className="absolute bottom-0 left-0 right-0 p-6 text-center"
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 transform group-hover:translate-y-[-4px] transition-transform duration-300">
                 {master.name}
               </h2>
@@ -92,20 +112,29 @@ export default function MasterSelector() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Decorative Border */}
-            <div className="absolute inset-0 rounded-3xl ring-2 ring-white/10 pointer-events-none" />
+            {/* Decorative Border - fades out on exit */}
+            <motion.div 
+              className="absolute inset-0 rounded-3xl ring-2 ring-white/10 pointer-events-none"
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
           </motion.button>
         ))}
       </div>
 
       {/* Subtle hint text */}
       <motion.p
-        initial={{ opacity: 0 }}
+        initial={prefersReducedMotion ? {} : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-        className="mt-12 text-sm text-muted dark:text-dark-muted text-center max-w-md"
+        exit={prefersReducedMotion ? {} : { opacity: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { 
+          duration: 0.6, 
+          ease: "easeOut",
+          delay: 0
+        }}
+        className="mt-4 text-xs sm:text-sm text-muted dark:text-dark-muted text-center max-w-md px-4"
       >
         Twój wybór zostanie zapamiętany dla wygodniejszego korzystania z systemu rezerwacji
       </motion.p>

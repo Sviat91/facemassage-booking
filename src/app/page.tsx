@@ -10,7 +10,7 @@ import Image from 'next/image'
  */
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col relative">
+    <main className="flex flex-col relative pb-4">
       <ThemeToggle />
       
       {/* Desktop Logo - top left */}
@@ -36,14 +36,14 @@ export default function HomePage() {
       </div>
 
       {/* Mobile Logo - centered */}
-      <div className="block lg:hidden mt-8 mb-4 px-4 text-center">
+      <div className="block lg:hidden pt-6 pb-2 px-4 text-center">
         {/* Light theme */}
         <Image
           src="/head_logo.png"
           alt="Logo Somique Beauty"
           width={200}
           height={80}
-          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto dark:hidden"
+          className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
           priority
         />
         {/* Dark theme */}
@@ -52,13 +52,13 @@ export default function HomePage() {
           alt="Logo Somique Beauty"
           width={200}
           height={80}
-          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto hidden dark:block"
+          className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
           priority
         />
       </div>
 
       {/* Master Selector */}
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex justify-center px-4 pt-8 lg:pt-24">
         <MasterSelector />
       </div>
     </main>

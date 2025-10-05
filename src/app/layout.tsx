@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Providers from './providers'
+import PageTransition from '../components/PageTransition'
 import Footer from '../components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -77,7 +78,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <div className="min-h-screen flex flex-col">
             <div className="flex-1">
-              {children}
+              <PageTransition>
+                {children}
+              </PageTransition>
             </div>
             <Footer />
           </div>

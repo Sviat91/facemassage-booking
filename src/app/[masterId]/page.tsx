@@ -3,8 +3,10 @@ import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { isValidMasterId, type MasterId } from '@/config/masters'
 import { useMaster } from '@/contexts/MasterContext'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import BrandHeader from '../../components/BrandHeader'
 import Card from '../../components/ui/Card'
 import ProcedureSelect from '../../components/ProcedureSelect'
@@ -25,6 +27,7 @@ interface PageProps {
 export default function Page({ params }: PageProps) {
   const router = useRouter()
   const { setMaster, selectedMasterId } = useMaster()
+  const prefersReducedMotion = useReducedMotion()
   
   // Validate masterId from URL
   useEffect(() => {
@@ -252,7 +255,16 @@ export default function Page({ params }: PageProps) {
       {/* основной центрированный контейнер */}
       <div className="mx-auto w-full max-w-5xl px-0">
         <BrandHeader onLogoClick={closeBookingManagement} />
-        <div className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0">
+        <motion.div 
+          className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { 
+            duration: 0.6, 
+            delay: 0.5,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+        >
           {/* На мобильных - услуги сверху, на десктопе - справа */}
           <div className="lg:order-2">
             <div className="space-y-4 w-full max-w-sm mx-auto">
@@ -383,7 +395,7 @@ export default function Page({ params }: PageProps) {
               </Card>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </main>
   )

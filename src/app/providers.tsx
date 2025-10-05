@@ -1,6 +1,7 @@
 "use client"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
+import { LayoutGroup } from 'framer-motion'
 import { MasterProvider } from '@/contexts/MasterContext'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={clientRef.current}>
       <MasterProvider>
-        {children}
+        <LayoutGroup>
+          {children}
+        </LayoutGroup>
       </MasterProvider>
     </QueryClientProvider>
   )
