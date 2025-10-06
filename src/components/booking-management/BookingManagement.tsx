@@ -8,6 +8,7 @@ import { useTurnstileSession } from './hooks/useTurnstileSession'
 import { useBookingMutations } from './hooks/useBookingMutations'
 import { useBookingHandlers } from './hooks/useBookingHandlers'
 import { fetchProcedures } from './api/bookingManagementApi'
+import { useSelectedMasterId } from '@/contexts/MasterContext'
 import type { ProceduresResponse } from './api/bookingManagementApi'
 import type {
   BookingManagementRef,
@@ -43,13 +44,14 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
   ) => {
     // Initialize state management and turnstile
     const { state, actions } = useBookingManagementState()
+    const masterId = useSelectedMasterId()
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
     const turnstileSession = useTurnstileSession(siteKey)
 
     // Fetch procedures
     const { data: proceduresData } = useQuery<ProceduresResponse>({
-      queryKey: ['procedures'],
-      queryFn: fetchProcedures,
+      queryKey: ['procedures', masterId],
+      queryFn: () => fetchProcedures(masterId),
       staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
     })
     const procedures = proceduresData?.items ?? []

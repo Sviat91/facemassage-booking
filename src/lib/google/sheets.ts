@@ -1,5 +1,6 @@
 import { config } from '../env'
 import { getClients } from './auth'
+import { getMasterSheetIdSafe } from '@/config/masters.server'
 export type { UserConsent } from './consents'
 export {
   saveUserConsent,
@@ -12,10 +13,11 @@ export {
   normalizePhoneForSheet,
 } from './consents'
 
-export async function readProcedures() {
+export async function readProcedures(masterId?: string) {
   const { sheets } = getClients()
+  const sheetId = getMasterSheetIdSafe(masterId)
   const range = `${config.SHEET_TABS.PROCEDURES}!A1:Z1000`
-  const res = await sheets.spreadsheets.values.get({ spreadsheetId: config.GOOGLE_SHEET_ID, range })
+  const res = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range })
   return parseProcedures(res.data.values ?? [])
 }
 

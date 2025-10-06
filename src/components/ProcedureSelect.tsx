@@ -1,13 +1,15 @@
 "use client"
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState, useMemo, MouseEvent } from 'react'
+import { useSelectedMasterId } from '@/contexts/MasterContext'
 
 type Procedure = { id: string; name_pl: string; duration_min: number; price_pln?: number }
 
 export default function ProcedureSelect({ valueId, onChange }: { valueId?: string; onChange?: (p: Procedure | null) => void }) {
+  const masterId = useSelectedMasterId()
   const { data, isLoading } = useQuery({
-    queryKey: ['procedures'],
-    queryFn: () => fetch('/api/procedures').then(r => r.json()),
+    queryKey: ['procedures', masterId],
+    queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then(r => r.json()),
     staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
   

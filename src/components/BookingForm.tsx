@@ -7,6 +7,7 @@ import BookingConsentModal from './BookingConsentModal'
 import { useBookingSubmit, type Slot } from './hooks/useBookingSubmit'
 import { fullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
 import { validateName, validatePhone, validateEmail, validateTurnstileToken } from '@/lib/validation/client-validators'
+import { useSelectedMasterId } from '@/contexts/MasterContext'
 
 type Procedure = { id: string; name_pl: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
@@ -20,6 +21,8 @@ export default function BookingForm({
   procedureId?: string
   onSuccess?: () => void
 }) {
+  const masterId = useSelectedMasterId()
+  
   // Form state
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -42,8 +45,8 @@ export default function BookingForm({
 
   // Fetch procedures
   const { data: proceduresData } = useQuery<ProceduresResponse>({
-    queryKey: ['procedures'],
-    queryFn: () => fetch('/api/procedures').then(r => r.json() as Promise<ProceduresResponse>),
+    queryKey: ['procedures', masterId],
+    queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then(r => r.json() as Promise<ProceduresResponse>),
     staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
 

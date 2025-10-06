@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { readProcedures } from '../../../lib/google/sheets'
 import { cacheGet, cacheSet } from '../../../lib/cache'
 import { getLogger } from '../../../lib/logger'
@@ -8,13 +8,14 @@ export const runtime = 'nodejs'
 
 const log = getLogger({ module: 'api.procedures' })
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const key = 'procedures:v1'
+    const masterId = req.nextUrl.searchParams.get('masterId') || undefined
+    const key = `procedures:v1:${masterId || 'default'}`
     let items = await cacheGet<any[]>(key)
     if (!items) {
-      log.debug('Procedures cache miss, loading from Google Sheets')
-      const all = await readProcedures()
+      log.debug({ masterId }, 'Procedures cache miss, loading from Google Sheets')
+      const all = await readProcedures(masterId)
       items = all.filter(p => p.is_active).sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999))
       await cacheSet(key, items, 900)
     }

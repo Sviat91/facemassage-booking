@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
+import { useSelectedMasterId } from '@/contexts/MasterContext'
 
 type Procedure = { id: string; name_pl: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
@@ -13,9 +14,10 @@ interface BookingSuccessPanelProps {
 }
 
 export default function BookingSuccessPanel({ slot, procedureId, onClose }: BookingSuccessPanelProps) {
+  const masterId = useSelectedMasterId()
   const { data: proceduresData } = useQuery<ProceduresResponse>({
-    queryKey: ['procedures'],
-    queryFn: () => fetch('/api/procedures').then(r => r.json() as Promise<ProceduresResponse>),
+    queryKey: ['procedures', masterId],
+    queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then(r => r.json() as Promise<ProceduresResponse>),
     staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
 

@@ -84,7 +84,7 @@ export const MasterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   /**
    * Change the selected master
    * - Saves to localStorage
-   * - Invalidates all booking-related queries
+   * - NO query invalidation needed: each master has separate cache entries with masterId in query keys
    */
   const setMaster = useCallback((masterId: MasterId) => {
     if (!isValidMasterId(masterId)) {
@@ -109,14 +109,11 @@ export const MasterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     // Save to localStorage
     setStoredMasterId(masterId)
     
-    // Invalidate all booking-related queries to force refetch with new master
-    queryClient.invalidateQueries({ queryKey: ['procedures'] })
-    queryClient.invalidateQueries({ queryKey: ['availability'] })
-    queryClient.invalidateQueries({ queryKey: ['day-slots'] })
-    queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    // NO invalidateQueries: Each master has separate cache with masterId in query keys
+    // Data was prefetched on landing page, so it's instantly available
     
-    clientLog.info('Master changed successfully. Cache invalidated.')
-  }, [queryClient])
+    clientLog.info('Master changed successfully. Using cached data for:', masterId)
+  }, [])
 
   /**
    * Check if a specific master is currently selected

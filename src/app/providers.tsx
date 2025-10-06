@@ -1,6 +1,6 @@
 "use client"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { LayoutGroup } from 'framer-motion'
 import { MasterProvider } from '@/contexts/MasterContext'
 
@@ -16,10 +16,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }
   })
 
-  // Prefetch procedures once on mount
-  useEffect(() => {
-    clientRef.current!.prefetchQuery({ queryKey: ['procedures'], queryFn: () => fetch('/api/procedures').then(r => r.json()) })
-  }, [])
+  // Prefetch moved to landing page (page.tsx) - prefetches for BOTH masters
 
   return (
     <QueryClientProvider client={clientRef.current}>

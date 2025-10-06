@@ -39,10 +39,12 @@ export default function Page({ params }: PageProps) {
       return
     }
     
-    // Set master if needed - setMaster now has early return if already selected
-    // This prevents unnecessary re-renders
-    setMaster(masterId)
-  }, [masterId, setMaster, router])
+    // Only set master if URL param differs from current selection
+    // This prevents unnecessary state updates
+    if (masterId !== selectedMasterId) {
+      setMaster(masterId)
+    }
+  }, [masterId, selectedMasterId, setMaster, router])
   
   // Don't render until master is validated
   if (!isValidMasterId(params.masterId)) {

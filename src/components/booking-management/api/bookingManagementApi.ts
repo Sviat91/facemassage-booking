@@ -72,8 +72,9 @@ export function mapApiResult(entry: SearchResultApi, procedures: ProcedureOption
 }
 
 // API Functions
-export async function fetchProcedures(): Promise<ProceduresResponse> {
-  const response = await fetch('/api/procedures')
+export async function fetchProcedures(masterId?: string): Promise<ProceduresResponse> {
+  const url = masterId ? `/api/procedures?masterId=${masterId}` : '/api/procedures'
+  const response = await fetch(url)
   if (!response.ok) {
     throw new Error('Nie udało się pobrać listy procedur')
   }
