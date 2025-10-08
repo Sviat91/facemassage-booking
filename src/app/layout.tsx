@@ -72,6 +72,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             `,
           }}
         />
+        <script
+          async
+          src="https://stats.theboatscanner.com/script.js"
+          data-website-id="8b85b843-7c23-4ec0-8487-423567d0d111"
+        />
       </head>
       <body className={inter.className}>
         <Providers>
