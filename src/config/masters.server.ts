@@ -25,7 +25,7 @@ export function getMasterCalendarId(masterId: MasterId): string {
     case 'olga':
       return config.GOOGLE_CALENDAR_ID
     case 'yuliia':
-      return config.GOOGLE_CALENDAR_ID_Yuliia
+      return config.GOOGLE_CALENDAR_ID_YULIIA
     default:
       // Fallback to Olga
       return config.GOOGLE_CALENDAR_ID
@@ -40,7 +40,7 @@ export function getMasterSheetId(masterId: MasterId): string {
     case 'olga':
       return config.GOOGLE_SHEET_ID
     case 'yuliia':
-      return config.GOOGLE_SHEET_ID_Yuliia
+      return config.GOOGLE_SHEET_ID_YULIIA
     default:
       // Fallback to Olga
       return config.GOOGLE_SHEET_ID
