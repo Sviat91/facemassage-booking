@@ -39,7 +39,7 @@ export default function MasterSelector() {
         className="text-center mb-6"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text dark:text-dark-text mb-2">
-          Wybierz swojego mistrza
+          Wybierz swojego specjalistę
         </h1>
         <p className="text-base sm:text-lg text-muted dark:text-dark-muted">
           Zarezerwuj wizytę u wybranego specjalisty
