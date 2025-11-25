@@ -115,7 +115,7 @@ export async function PATCH(
       }
 
       // Update description with new price
-      newDescription = prepareUpdatedDescription(newDescription, newProcedure.price_pln || 0)
+      newDescription = prepareUpdatedDescription(newDescription, newProcedure.price_pln)
       
       log.info({
         procedureName: newProcedure.name_pl,

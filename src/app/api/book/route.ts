@@ -8,6 +8,7 @@ import { config } from '../../../lib/env'
 import { getLogger } from '../../../lib/logger'
 import { reportError } from '../../../lib/sentry'
 import { bookingApiSchema, type BookingApiInput } from '../../../lib/validation/api-schemas'
+import { normalizePricePln } from '../../../lib/price'
 
 export const runtime = 'nodejs'
 
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
     // Get procedure details for new format
     let summary = `Booking: ${booking.name}` // fallback if no procedure
     let procedureName = ''
-    let price = 0
+    let price = '0'
     
     if (booking.procedureId) {
       try {
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
         if (proc) {
           summary = proc.name_pl // Use only procedure name as title
           procedureName = proc.name_pl
-          price = proc.price_pln || 0
+          price = normalizePricePln(proc.price_pln)
         }
       } catch (err) {
         log.warn({ err }, 'Failed to enrich booking summary with procedure name')

@@ -4,6 +4,7 @@ import { readProcedures } from './google/sheets'
 import { verifyBookingAccess, canModifyBooking, BookingErrors, type UserAccessCriteria } from './booking-helpers'
 import { config } from './env'
 import { getLogger } from './logger'
+import { normalizePricePln } from './price'
 import { getMasterCalendarIdSafe } from '@/config/masters.server'
 
 const log = getLogger({ module: 'booking.modification.helpers' })
@@ -270,14 +271,11 @@ export async function getProcedureInfo(procedureId: string, masterId?: string) {
 /**
  * Prepare new booking description with updated procedure info
  */
-export function prepareUpdatedDescription(
-  originalDescription: string,
-  newPrice?: number
-): string {
-  if (!newPrice || !originalDescription) {
+export function prepareUpdatedDescription(originalDescription: string, newPrice?: number | string): string {
+  const priceText = normalizePricePln(newPrice)
+  if (!priceText || !originalDescription) {
     return originalDescription
   }
 
-  // Replace price in description
-  return originalDescription.replace(/Cena: \d+zł/, `Cena: ${newPrice}zł`)
+  return originalDescription.replace(/(Cena:\s*)([^\n\r]*)/, `$1${priceText}zl`)
 }
