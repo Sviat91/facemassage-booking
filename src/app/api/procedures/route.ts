@@ -11,7 +11,7 @@ const log = getLogger({ module: 'api.procedures' })
 export async function GET(req: NextRequest) {
   try {
     const masterId = req.nextUrl.searchParams.get('masterId') || undefined
-    const key = `procedures:v1:${masterId || 'default'}`
+    const key = `procedures:v2:${masterId || 'default'}`
     let items = await cacheGet<any[]>(key)
     if (!items) {
       log.debug({ masterId }, 'Procedures cache miss, loading from Google Sheets')

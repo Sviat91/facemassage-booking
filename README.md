@@ -90,12 +90,19 @@ The application supports multiple beauty masters, each with their own:
 #### Cache Strategy
 
 Each master has isolated cache entries:
-- `procedures:v1:olga` vs `procedures:v1:juli`
+- `procedures:v2:olga` vs `procedures:v2:juli`
 - `availability:olga:...` vs `availability:juli:...`
 - Switching masters doesn't invalidate other master's cache
 - Prefetching on landing page for instant loading
 
 ### Google Sheets Setup
+
+#### Procedures & Exceptions Sheets
+
+- **PROCEDURES**: include `Name`, `Duration`, optional `Category` (`All`/`Osteo`/`Cosmet`/`Massage`/blank) and `Availability` (checkbox). Only rows with `Availability` = true are exposed in `/api/procedures`.
+- **EXCEPTIONS**: `Notes` column acts as a category gate. `All` or empty allows all procedures; a specific value (`Osteo`, `Cosmet`, `Massage`) allows booking only for that category on that date.
+- Procedures with an empty `Category` are treated as `All` and are blocked on category-restricted exception days (e.g., day = `Osteo`).
+- Day and procedure caches now use the updated `v2` keys to reflect the new filtering rules.
 
 #### User Consents Sheet Structure
 

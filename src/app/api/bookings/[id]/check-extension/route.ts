@@ -10,6 +10,14 @@ import { format } from 'date-fns'
 export const runtime = 'nodejs'
 
 const log = getLogger({ module: 'api.bookings.check-extension' })
+const normalizeCategory = (value?: string | null) => {
+  const s = String(value ?? '').trim().toLowerCase()
+  if (!s || s === 'all') return 'all'
+  if (s.startsWith('osteo')) return 'osteo'
+  if (s.startsWith('cosmet')) return 'cosmet'
+  if (s.startsWith('mass')) return 'massage'
+  return s
+}
 
 // Input validation schema
 const CheckExtensionSchema = z.object({
@@ -75,6 +83,7 @@ export async function POST(
     // Get new procedure info
     const procedures = await readProcedures(body.masterId)
     const newProcedure = procedures.find(p => p.id === body.newProcedureId)
+    const procedureCategory = normalizeCategory(newProcedure?.category)
     
     if (!newProcedure) {
       return NextResponse.json(
@@ -154,10 +163,33 @@ export async function POST(
       weekday,
       weeklyHours: weekly[weekday]?.hours,
       exceptionHours: exceptions[dateISO]?.hours,
+      exceptionCategory: exceptions[dateISO]?.category,
       finalHours: hours,
       isDayOff,
       message: '🕐 STEP 4: Got working hours'
     })
+
+    // Respect category restrictions from Exceptions
+    const dayCategory = normalizeCategory(exceptions[dateISO]?.category)
+    if (dayCategory !== 'all' && procedureCategory !== dayCategory) {
+      log.warn({ dayCategory, procedureCategory, dateISO }, 'Day restricted by category')
+      return NextResponse.json<CheckExtensionResponse>({
+        result: {
+          status: 'no_availability',
+          message: 'Ten dzień jest dostępny tylko dla innej kategorii usług.',
+          reason: 'CATEGORY_RESTRICTED'
+        },
+        currentBooking: {
+          startISO: body.currentStartISO,
+          endISO: body.currentEndISO,
+        },
+        newProcedure: {
+          id: newProcedure.id,
+          name: newProcedure.name_pl,
+          duration: newProcedure.duration_min,
+        }
+      })
+    }
 
     // STEP 5: Check if day is closed
     if (isDayOff || !hours) {

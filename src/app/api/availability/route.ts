@@ -30,9 +30,13 @@ export async function GET(req: NextRequest) {
 
     const procs = await readProcedures(masterId || undefined)
     let minDuration = 30 // safe default to avoid Infinity
+    let procedureCategory: string | undefined
     if (procedureId) {
       const proc = procs.find(p => p.id === procedureId)
       if (proc?.duration_min) minDuration = Math.max(15, proc.duration_min)
+      if (proc) {
+        procedureCategory = proc.category ?? ''
+      }
     } else {
       const active = procs.filter(p => p.is_active)
       if (active.length > 0) {
@@ -42,7 +46,11 @@ export async function GET(req: NextRequest) {
 
     log.debug({ from, until, procedureId, masterId, debug, minDuration }, 'Computing availability window')
 
-    const data = await getAvailableDays(from, until, minDuration, { debug, masterId: masterId || undefined })
+    const data = await getAvailableDays(from, until, minDuration, {
+      debug,
+      masterId: masterId || undefined,
+      ...(procedureCategory !== undefined ? { procedureCategory } : {}),
+    })
     return NextResponse.json(data)
   } catch (err: any) {
     log.error({ err, from, until, procedureId, masterId, debug }, 'Failed to compute availability')

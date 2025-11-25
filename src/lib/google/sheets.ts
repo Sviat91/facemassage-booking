@@ -26,6 +26,7 @@ type Procedure = {
   name_pl: string
   name_ru?: string
   category?: string
+  availability?: boolean
   duration_min: number
   price_pln?: number | string
   is_active: boolean
@@ -46,6 +47,7 @@ function parseProcedures(rows: any[][]): Procedure[] {
     })(),
     name_ru: find(/name_ru/),
     category: find(/category|kategoria/),
+    availability: find(/availability|available|dostep|dostepnosc|dostepny/),
     duration_min: (() => {
       const i = find(/duration|czas|min/)
       return i
@@ -83,14 +85,18 @@ function parseProcedures(rows: any[][]): Procedure[] {
     const duration = gi.duration_min >= 0 ? parseDuration(r[gi.duration_min]) : 30
     if (!name) return // skip empty
     const id = (gi.id >= 0 ? String(r[gi.id] ?? '').trim() : `${name}-${duration}`).slice(0, 100)
+    const availability = gi.availability >= 0 ? asBool(r[gi.availability]) : undefined
+    const activeFlag = gi.is_active >= 0 ? asBool(r[gi.is_active]) : undefined
+    const isActiveEffective = (activeFlag ?? true) && (availability ?? true)
     out.push({
       id,
       name_pl: name,
       name_ru: gi.name_ru >= 0 ? String(r[gi.name_ru] ?? '') : undefined,
-      category: gi.category >= 0 ? String(r[gi.category] ?? '') : undefined,
+      category: gi.category >= 0 ? String(r[gi.category] ?? '').trim() : undefined,
+      availability,
       duration_min: duration,
       price_pln: gi.price_pln >= 0 ? asPrice(r[gi.price_pln]) : undefined,
-      is_active: gi.is_active >= 0 ? asBool(r[gi.is_active]) : true,
+      is_active: isActiveEffective,
       order: gi.order >= 0 ? asNum(r[gi.order]) : idxRow + 1,
     })
   })
@@ -140,7 +146,7 @@ export async function readWeekly(masterId?: string): Promise<WeeklyMap> {
   return weekly
 }
 
-export type ExceptionsMap = Record<string, { hours: string; isDayOff: boolean }>
+export type ExceptionsMap = Record<string, { hours: string; isDayOff: boolean; category?: string }>
 
 export async function readExceptions(masterId?: string): Promise<ExceptionsMap> {
   const { sheets } = getClients()
@@ -152,26 +158,40 @@ export async function readExceptions(masterId?: string): Promise<ExceptionsMap> 
 
   const normRow = (row: any[]) => row.map(c => String(c ?? '').replace(/\u00A0/g, ' ').trim().toLowerCase())
   let headerIdx = 0
-  let gi = { date: -1, hours: -1, dayoff: -1 }
+  let gi = { date: -1, hours: -1, dayoff: -1, category: -1 }
   for (let i = 0; i < Math.min(rows.length, 10); i++) {
     const hdr = normRow(rows[i] as any[])
     const find = (pred: (s: string) => boolean) => hdr.findIndex(pred)
     const date = find(s => s.includes('date') || s.includes('data'))
     const hours = find(s => s.includes('working') || s.includes('work') || s.includes('hours') || s.includes('special') || s.includes('godziny'))
     const dayoff = find(s => s.includes('day off') || s.includes('closed') || s.includes('off') || s.includes('wolne'))
-    if (date >= 0 && (hours >= 0 || dayoff >= 0)) { headerIdx = i; gi = { date, hours, dayoff }; break }
+    const category = find(s => s.includes('notes') || s.includes('category') || s.includes('kategoria'))
+    if (date >= 0 && (hours >= 0 || dayoff >= 0)) { headerIdx = i; gi = { date, hours, dayoff, category }; break }
   }
   if (gi.date < 0) return {}
 
   const items = rows.slice(headerIdx + 1)
   const isYes = (v: any) => String(v ?? '').replace(/\u00A0/g, ' ').trim().toLowerCase() === 'yes' || String(v ?? '').trim() === '1' || String(v ?? '').trim().toLowerCase() === 'true'
   const normDate = (s: any) => String(s ?? '').replace(/\u00A0/g, ' ').trim().slice(0, 10)
+  const normCategory = (v: any) => {
+    const s = String(v ?? '').replace(/\u00A0/g, ' ').trim().toLowerCase()
+    if (!s || s === 'all') return 'all'
+    if (s.startsWith('osteo')) return 'osteo'
+    if (s.startsWith('cosmet')) return 'cosmet'
+    if (s.startsWith('massage')) return 'massage'
+    return s
+  }
   const ex: ExceptionsMap = {}
   for (const r of items) {
     const row = (r as any[]) || []
     const d = normDate(row[gi.date])
     if (!d || d.toLowerCase() === 'date') continue // skip accidental header rows
-    ex[d] = { hours: String(row[gi.hours] ?? '').replace(/\u00A0/g, ' ').trim(), isDayOff: isYes(row[gi.dayoff]) }
+    const category = gi.category >= 0 ? normCategory(row[gi.category]) : undefined
+    ex[d] = {
+      hours: String(row[gi.hours] ?? '').replace(/\u00A0/g, ' ').trim(),
+      isDayOff: isYes(row[gi.dayoff]),
+      category: category === 'all' ? undefined : category,
+    }
   }
   return ex
 }

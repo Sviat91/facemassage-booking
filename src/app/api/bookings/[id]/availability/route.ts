@@ -7,12 +7,10 @@ import {
   verifyBookingAccess, 
   canModifyBooking, 
   getAvailableSlotsForRebooking, 
-  getProcedureDuration,
   BookingErrors,
   type UserAccessCriteria 
 } from '../../../../../lib/booking-helpers'
-import { readProcedures, readWeekly, readExceptions } from '../../../../../lib/google/sheets'
-import { config } from '../../../../../lib/env'
+import { readProcedures } from '../../../../../lib/google/sheets'
 import { getMasterCalendarIdSafe } from '@/config/masters.server'
 import { getLogger } from '../../../../../lib/logger'
 import { reportError } from '../../../../../lib/sentry'
@@ -167,25 +165,29 @@ export async function POST(
 
       // Determine procedure duration
       let procedureDurationMin: number
-      
+      let procedureCategory: string | undefined
+      const procedures = await readProcedures(body.masterId)
+
       if (body.procedureId) {
         // User wants to change procedure, get new duration
-        procedureDurationMin = await getProcedureDuration(body.procedureId, body.masterId)
-        if (procedureDurationMin === 60 && body.procedureId) {
-          // Check if procedure actually exists
-          const procedures = await readProcedures(body.masterId)
-          const procedure = procedures.find(p => p.id === body.procedureId)
-          if (!procedure) {
-            return NextResponse.json(
-              BookingErrors.PROCEDURE_NOT_FOUND,
-              { status: 400 }
-            )
-          }
+        const procedure = procedures.find(p => p.id === body.procedureId)
+        if (!procedure) {
+          return NextResponse.json(
+            BookingErrors.PROCEDURE_NOT_FOUND,
+            { status: 400 }
+          )
         }
+        procedureDurationMin = Math.max(15, procedure.duration_min || 60)
+        procedureCategory = procedure.category ?? ''
       } else {
         // Keep current procedure duration
         const currentDurationMs = existingBooking.endTime.getTime() - existingBooking.startTime.getTime()
         procedureDurationMin = Math.round(currentDurationMs / (60 * 1000))
+        const existingName = (existingBooking.procedureName || '').toLowerCase()
+        const matched = procedures.find(p => (p.name_pl || '').toLowerCase() === existingName)
+        if (matched) {
+          procedureCategory = matched.category ?? ''
+        }
       }
 
       // Generate available slots using existing availability system
@@ -200,6 +202,7 @@ export async function POST(
           },
           maxSlots: 50,
           masterId: body.masterId,
+          procedureCategory,
         })
 
         availabilityInfo.availableSlots = availableSlots

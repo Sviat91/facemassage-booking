@@ -6,6 +6,14 @@ import { freeBusy } from './google/calendar'
 const TZ = 'Europe/Warsaw'
 
 type Range = { start: number; end: number } // minutes in day
+const normalizeCategory = (value?: string | null) => {
+  const s = String(value ?? '').trim().toLowerCase()
+  if (!s || s === 'all') return 'all'
+  if (s.startsWith('osteo')) return 'osteo'
+  if (s.startsWith('cosmet')) return 'cosmet'
+  if (s.startsWith('mass')) return 'massage'
+  return s
+}
 
 const t2m = (t: string) => {
   const s = String(t || '').trim()
@@ -45,8 +53,10 @@ function minusBusy(open: Range[], busy: Range[]): Range[] {
 
 function isoDate(d: Date) { return format(d, 'yyyy-MM-dd') }
 
-export async function getAvailableDays(fromISO: string, untilISO: string, minDuration: number, opts?: { debug?: boolean; masterId?: string }) {
+export async function getAvailableDays(fromISO: string, untilISO: string, minDuration: number, opts?: { debug?: boolean; masterId?: string; procedureCategory?: string | null }) {
   const masterId = opts?.masterId
+  const hasProcedureCategory = opts ? Object.prototype.hasOwnProperty.call(opts, 'procedureCategory') : false
+  const procedureCategory = normalizeCategory(opts?.procedureCategory)
   const weekly = await readWeekly(masterId)
   const exceptions = await readExceptions(masterId)
 
@@ -92,8 +102,10 @@ export async function getAvailableDays(fromISO: string, untilISO: string, minDur
       if (ex.hours) hours = ex.hours
       isDayOff = ex.isDayOff
     }
+    const dayCategory = normalizeCategory(exceptions[date]?.category)
+    const categoryAllowed = dayCategory === 'all' || !hasProcedureCategory || procedureCategory === dayCategory
     let hasWindow = false
-    if (!isDayOff && hours) {
+    if (!isDayOff && hours && categoryAllowed) {
       const open = parseRanges(hours)
       const dayBusy = busyByDate.get(date) ?? []
       const free = minusBusy(open, dayBusy)
@@ -117,21 +129,25 @@ export async function getAvailableDays(fromISO: string, untilISO: string, minDur
 }
 
 // Generate concrete slots for a specific date in Europe/Warsaw
-export async function getDaySlots(dateISO: string, minDuration: number, stepMin: number = 15, masterId?: string) {
+export async function getDaySlots(dateISO: string, minDuration: number, stepMin: number = 15, masterId?: string, procedureCategory?: string | null) {
   const weekly = await readWeekly(masterId)
   const exceptions = await readExceptions(masterId)
+  const hasProcedureCategory = arguments.length >= 5
+  const procCategory = normalizeCategory(procedureCategory)
 
   // Determine working hours for the specific date
   const base = new Date(dateISO + 'T00:00:00')
   const weekday = base.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
   let hours = weekly[weekday]?.hours || ''
   let isDayOff = weekly[weekday]?.isDayOff || false
+  const dayCategory = normalizeCategory(exceptions[dateISO]?.category)
   if (exceptions[dateISO]) {
     const ex = exceptions[dateISO]
     if (ex.hours) hours = ex.hours
     isDayOff = ex.isDayOff
   }
-  if (isDayOff || !hours) return { slots: [] as { startISO: string; endISO: string }[] }
+  const categoryAllowed = dayCategory === 'all' || !hasProcedureCategory || procCategory === dayCategory
+  if (isDayOff || !hours || !categoryAllowed) return { slots: [] as { startISO: string; endISO: string }[] }
 
   const open = parseRanges(hours)
   if (!open.length) return { slots: [] as { startISO: string; endISO: string }[] }

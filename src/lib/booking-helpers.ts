@@ -203,6 +203,7 @@ export async function getAvailableSlotsForRebooking(options: {
   }
   maxSlots?: number // Limit results for performance
   masterId?: string
+  procedureCategory?: string | null
 }): Promise<TimeSlot[]> {
   const { dateFrom, dateTo, procedureDurationMin, excludeBooking, maxSlots = 50 } = options
   
@@ -218,7 +219,20 @@ export async function getAvailableSlotsForRebooking(options: {
     try {
       // Use existing getDaySlots function to get available slots for this day
       // This respects the master's schedule from Google Sheets (weekly + exceptions)
-      const dayResult = await getDaySlots(dateISO, procedureDurationMin, 15, options.masterId) // 15min step
+      const dayResult = options.procedureCategory !== undefined
+        ? await getDaySlots(
+            dateISO,
+            procedureDurationMin,
+            15,
+            options.masterId,
+            options.procedureCategory
+          )
+        : await getDaySlots(
+            dateISO,
+            procedureDurationMin,
+            15,
+            options.masterId
+          ) // 15min step
       const daySlots = dayResult.slots || []
       
       // Convert to TimeSlot format and filter out excluded booking

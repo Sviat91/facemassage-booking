@@ -29,7 +29,7 @@ describe('Multi-Master API Support', () => {
     })
 
     it('should cache procedures separately per master', async () => {
-      const cacheKeys = MASTER_IDS.map(masterId => `procedures:v1:${masterId}`)
+      const cacheKeys = MASTER_IDS.map(masterId => `procedures:v2:${masterId}`)
       
       // Verify cache keys are unique
       const uniqueKeys = new Set(cacheKeys)
@@ -131,7 +131,7 @@ describe('Multi-Master API Support', () => {
 
   describe('Cache Isolation', () => {
     it('should use separate cache keys for different masters', () => {
-      const procedures = MASTER_IDS.map(id => `procedures:v1:${id}`)
+      const procedures = MASTER_IDS.map(id => `procedures:v2:${id}`)
       const availability = MASTER_IDS.map(id => `availability:${id}`)
       
       // All cache keys should be unique
@@ -142,8 +142,8 @@ describe('Multi-Master API Support', () => {
 
     it('should not invalidate cache for other masters', () => {
       // When Olga's data changes, Yuliia's cache should remain intact
-      const olgaKey = 'procedures:v1:olga'
-      const yuliiaKey = 'procedures:v1:yuliia'
+      const olgaKey = 'procedures:v2:olga'
+      const yuliiaKey = 'procedures:v2:yuliia'
       
       expect(olgaKey).not.toBe(yuliiaKey)
     })
