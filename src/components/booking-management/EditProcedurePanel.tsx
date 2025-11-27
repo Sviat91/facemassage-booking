@@ -1,5 +1,6 @@
 "use client"
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BookingResult, ProcedureOption, ExtensionCheckStatus, ExtensionCheckResult, SlotSelection } from './types'
 
 interface EditProcedurePanelProps {
@@ -36,6 +37,7 @@ export default function EditProcedurePanel({
   onSelectAlternativeSlot,
   onConfirmAlternativeSlot,
 }: EditProcedurePanelProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [showAlternatives, setShowAlternatives] = useState(false)
   const currentDuration = booking.procedureDurationMin
@@ -57,15 +59,15 @@ export default function EditProcedurePanel({
   }
 
   return (
-    <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" role="dialog" aria-label="Zmiana procedury">
+    <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" role="dialog" aria-label={t('management.changeProcedureBtn')}>
       <div className="text-sm text-neutral-600 dark:text-dark-muted">
-        Wybierz nową procedurę dla rezerwacji:
+        {t('management.selectNewProcedure')}
       </div>
 
       <div className="space-y-2">
         {/* Current procedure info */}
         <div className="rounded-xl border border-border bg-neutral-50 p-3 dark:bg-dark-border/30 dark:border-dark-border">
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">Obecna procedura:</div>
+          <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.currentProcedure')}</div>
           <div className="text-sm font-medium dark:text-dark-text">
             {booking.procedureName}
           </div>
@@ -95,7 +97,7 @@ export default function EditProcedurePanel({
                 {selectedProcedure.name_pl} • {selectedProcedure.duration_min} min • {selectedProcedure.price_pln}zł
               </span>
             ) : (
-              <span className="text-neutral-500 dark:text-dark-muted text-sm">Wybierz nową procedurę</span>
+              <span className="text-neutral-500 dark:text-dark-muted text-sm">{t('management.selectNewProcedurePlaceholder')}</span>
             )}
             <span
               className={`absolute right-3 top-1/2 -translate-y-1/2 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -136,7 +138,7 @@ export default function EditProcedurePanel({
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm">{procedure.name_pl}</span>
                         <span className="text-xs text-neutral-500 dark:text-dark-muted whitespace-nowrap">
-                          {procedure.duration_min} min • {procedure.price_pln}zł{isCurrent ? ' (obecna)' : ''}
+                          {procedure.duration_min} min • {procedure.price_pln}zł{isCurrent ? ` ${t('management.current')}` : ''}
                         </span>
                       </div>
                     </button>
@@ -154,10 +156,10 @@ export default function EditProcedurePanel({
           {isSameOrShorter ? (
             <div className="rounded-xl border border-green-200 bg-green-50 p-3 dark:border-green-400/50 dark:bg-green-400/10">
               <div className="text-sm text-green-700 dark:text-green-400">
-                ✓ Nowa procedura jest {durationDiff === 0 ? 'tej samej długości' : `krótsza o ${Math.abs(durationDiff)} min`}
+                ✓ {durationDiff === 0 ? t('management.sameDuration') : t('management.shorterBy', { min: Math.abs(durationDiff) })}
               </div>
               <div className="text-xs text-green-600 dark:text-green-300">
-                Możesz zachować obecny termin lub wybrać nowy.
+                {t('management.canKeepCurrentTerm')}
               </div>
             </div>
           ) : (
@@ -166,7 +168,7 @@ export default function EditProcedurePanel({
               {canExtend && (
                 <div className="rounded-xl border border-green-200 bg-green-50 p-3 dark:border-green-400/50 dark:bg-green-400/10">
                   <div className="text-sm text-green-700 dark:text-green-400">
-                    ✓ Czas jest dostępny! Procedura może być zmieniona na ten sam termin.
+                    ✓ {t('management.timeAvailable')}
                   </div>
                   <div className="text-xs text-green-600 dark:text-green-300 mt-1">
                     {extensionCheckResult?.message}
@@ -178,17 +180,17 @@ export default function EditProcedurePanel({
               {canShiftBack && extensionCheckResult && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-400/50 dark:bg-amber-400/10">
                   <div className="text-sm text-amber-700 dark:text-amber-400 font-medium mb-2">
-                    ⚠ Nie możemy wydłużyć czasu procedury
+                    ⚠ {t('management.cannotExtendTime')}
                   </div>
                   <div className="text-xs text-amber-600 dark:text-amber-300 mb-3">
                     {extensionCheckResult.reason === 'konflikt z kolejną rezerwacją' 
-                      ? '→ Kolejna rezerwacja uniemożliwia rozszerzenie'
-                      : '→ Nowy czas wykraczałby poza godziny pracy'
+                      ? `→ ${t('management.nextBookingConflict')}`
+                      : `→ ${t('management.outsideWorkingHours')}`
                     }
                   </div>
                   <div className="border-t border-amber-300/30 dark:border-amber-500/30 pt-2 mt-2">
                     <div className="text-sm text-amber-700 dark:text-amber-400 font-medium mb-1">
-                      💡 Możemy przesunąć Twoją rezerwację o {extensionCheckResult.shiftMinutes} min wcześniej:
+                      💡 {t('management.canShiftEarlier', { min: extensionCheckResult.shiftMinutes })}
                     </div>
                     <div className="text-xs text-amber-600 dark:text-amber-300">
                       <span className="font-semibold">
@@ -208,7 +210,7 @@ export default function EditProcedurePanel({
                         className="text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1"
                       >
                         <span>{showAlternatives ? '▼' : '▶'}</span>
-                        Inne dostępne terminy tego dnia ({extensionCheckResult.alternativeSlots.length})
+                        {t('management.otherAvailableTimes', { count: extensionCheckResult.alternativeSlots.length })}
                       </button>
                       
                       {showAlternatives && (
@@ -241,10 +243,10 @@ export default function EditProcedurePanel({
               {noAvailability && (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-400/50 dark:bg-red-400/10">
                   <div className="text-sm text-red-700 dark:text-red-400">
-                    ✗ Brak dostępnego czasu w dniu Twojej rezerwacji.
+                    ✗ {t('management.noAvailableTime')}
                   </div>
                   <div className="text-xs text-red-600 dark:text-red-300 mt-1">
-                    Wybierz nowy termin w kalendarzu używając przycisku poniżej.
+                    {t('management.selectNewTermFromCalendar')}
                   </div>
                 </div>
               )}
@@ -253,10 +255,10 @@ export default function EditProcedurePanel({
               {!canExtend && !canShiftBack && !noAvailability && !isChecking && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-400/50 dark:bg-amber-400/10">
                   <div className="text-sm text-amber-700 dark:text-amber-400">
-                    ⚠ Nowa procedura jest dłuższa o {durationDiff} min
+                    ⚠ {t('management.longerBy', { min: durationDiff })}
                   </div>
                   <div className="text-xs text-amber-600 dark:text-amber-300">
-                    Sprawdzimy dostępność dla dłuższego terminu.
+                    {t('management.willCheckAvailability')}
                   </div>
                 </div>
               )}
@@ -279,10 +281,10 @@ export default function EditProcedurePanel({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Zapisywanie...
+                      {t('management.saving')}
                     </>
                   ) : (
-                    'Potwierdź na ten sam czas'
+                    t('management.confirmSameTime')
                   )}
                 </button>
                 <button 
@@ -290,7 +292,7 @@ export default function EditProcedurePanel({
                   onClick={onRequestNewTime} 
                   className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
                 >
-                  Wybierz nowy termin
+                  {t('management.selectNewTerm')}
                 </button>
               </>
             ) : (
@@ -310,10 +312,10 @@ export default function EditProcedurePanel({
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Zapisywanie...
+                          {t('management.saving')}
                         </>
                       ) : (
-                        'Potwierdź na ten sam czas'
+                        t('management.confirmSameTime')
                       )}
                     </button>
                     <button 
@@ -321,7 +323,7 @@ export default function EditProcedurePanel({
                       onClick={onRequestNewTime} 
                       className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
                     >
-                      Wybierz nowy termin
+                      {t('management.selectNewTerm')}
                     </button>
                   </>
                 ) : canShiftBack ? (
@@ -339,12 +341,12 @@ export default function EditProcedurePanel({
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Zapisywanie...
+                          {t('management.saving')}
                         </>
                       ) : (
                         selectedAlternativeSlot 
-                          ? `Potwierdź na ${formatTime(selectedAlternativeSlot.startISO)}`
-                          : `Potwierdź na ${extensionCheckResult?.suggestedStartISO ? formatTime(extensionCheckResult.suggestedStartISO) : ''}`
+                          ? `${t('management.confirmAt')} ${formatTime(selectedAlternativeSlot.startISO)}`
+                          : `${t('management.confirmAt')} ${extensionCheckResult?.suggestedStartISO ? formatTime(extensionCheckResult.suggestedStartISO) : ''}`
                       )}
                     </button>
                     <button 
@@ -352,7 +354,7 @@ export default function EditProcedurePanel({
                       onClick={onRequestNewTime} 
                       className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
                     >
-                      Lub wybierz inny termin
+                      {t('management.orSelectOtherTerm')}
                     </button>
                   </>
                 ) : noAvailability ? (
@@ -362,7 +364,7 @@ export default function EditProcedurePanel({
                     onClick={onRequestNewTime} 
                     className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md dark:bg-accent dark:hover:bg-accent/90"
                   >
-                    Wybierz nowy termin
+                    {t('management.selectNewTerm')}
                   </button>
                 ) : (
                   /* Начальное состояние - кнопка проверки */
@@ -379,10 +381,10 @@ export default function EditProcedurePanel({
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Sprawdzanie...
+                          {t('management.checking')}
                         </>
                       ) : (
-                        'Sprawdź dostępność'
+                        t('management.checkAvailability')
                       )}
                     </button>
                     <button 
@@ -390,7 +392,7 @@ export default function EditProcedurePanel({
                       onClick={onRequestNewTime} 
                       className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
                     >
-                      Wybierz nowy termin
+                      {t('management.selectNewTerm')}
                     </button>
                   </>
                 )}
@@ -404,12 +406,12 @@ export default function EditProcedurePanel({
             onClick={onBack} 
             className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
           >
-            Powrót
+            {t('management.back')}
           </button>
         </div>
       ) : (
         <div className="text-xs text-neutral-500 dark:text-dark-muted text-center py-2">
-          Wybierz procedurę z listy powyżej, aby kontynuować.
+          {t('management.selectProcedureFromList')}
         </div>
       )}
     </div>

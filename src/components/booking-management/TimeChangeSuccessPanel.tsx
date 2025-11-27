@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 import type { TimeChangeSession, BookingResult, SlotSelection } from './types'
 import { timeFormatter, dateFormatter } from '@/lib/utils/date-formatters'
 
@@ -11,14 +12,13 @@ export default function TimeChangeSuccessPanel({
   timeChangeSession,
   onBackToResults,
 }: TimeChangeSuccessPanelProps) {
+  const { t } = useTranslation()
   const { originalBooking: booking, newSlot } = timeChangeSession
   
   // Safety check - should not happen in success state
   if (!newSlot) {
     return null
   }
-  
-  // Using centralized formatters
 
   const newStartTime = new Date(newSlot.startISO)
   const newEndTime = new Date(newSlot.endISO)
@@ -35,10 +35,10 @@ export default function TimeChangeSuccessPanel({
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-          Termin został pomyślnie zmieniony!
+          {t('management.termChangedSuccess')}
         </h3>
         <p className="text-sm text-green-600 dark:text-green-300 mt-1">
-          Twoja rezerwacja została zaktualizowana
+          {t('management.bookingUpdated')}
         </p>
       </div>
 
@@ -47,13 +47,13 @@ export default function TimeChangeSuccessPanel({
         <div className="space-y-3">
           {/* Procedure */}
           <div>
-            <span className="text-sm font-medium text-green-800 dark:text-green-200">Zabieg:</span>
+            <span className="text-sm font-medium text-green-800 dark:text-green-200">{t('management.treatmentLabel')}</span>
             <p className="text-green-900 dark:text-green-100 font-medium">{booking.procedureName}</p>
           </div>
 
           {/* New Time - highlighted in green */}
           <div className="bg-green-100 dark:bg-green-800/30 rounded-lg p-3 border border-green-300 dark:border-green-700">
-            <span className="text-sm font-medium text-green-800 dark:text-green-200">Nowy termin:</span>
+            <span className="text-sm font-medium text-green-800 dark:text-green-200">{t('management.newTerm')}</span>
             <p className="text-green-900 dark:text-green-100 font-semibold text-lg">
               {newDateStr}
             </p>
@@ -64,19 +64,19 @@ export default function TimeChangeSuccessPanel({
 
           {/* Price */}
           <div>
-            <span className="text-sm font-medium text-green-800 dark:text-green-200">Cena:</span>
+            <span className="text-sm font-medium text-green-800 dark:text-green-200">{t('management.priceLabel')}</span>
             <p className="text-green-900 dark:text-green-100 font-medium">{booking.price} zł</p>
           </div>
 
           {/* Duration */}
           <div>
-            <span className="text-sm font-medium text-green-800 dark:text-green-200">Czas trwania:</span>
+            <span className="text-sm font-medium text-green-800 dark:text-green-200">{t('management.durationLabel')}</span>
             <p className="text-green-900 dark:text-green-100">{booking.procedureDurationMin} min</p>
           </div>
 
           {/* Client Info */}
           <div>
-            <span className="text-sm font-medium text-green-800 dark:text-green-200">Klient:</span>
+            <span className="text-sm font-medium text-green-800 dark:text-green-200">{t('management.clientLabel')}</span>
             <p className="text-green-900 dark:text-green-100">{booking.firstName} {booking.lastName}</p>
           </div>
         </div>
@@ -89,9 +89,9 @@ export default function TimeChangeSuccessPanel({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">Zmiana została zapisana</p>
+            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">{t('management.changeSaved')}</p>
             <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-              Twoja rezerwacja została automatycznie zaktualizowana w kalendarzu. Możesz bezpiecznie zamknąć to okno.
+              {t('management.bookingAutoUpdated')}
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function TimeChangeSuccessPanel({
           onClick={onBackToResults}
           className="rounded-lg bg-green-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md dark:bg-green-500 dark:hover:bg-green-600"
         >
-          Powrót do wyników
+          {t('management.backToResults')}
         </button>
       </div>
     </div>

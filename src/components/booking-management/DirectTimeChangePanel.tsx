@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 import type { BookingResult, SlotSelection, ProcedureOption } from './types'
 import { timeFormatter, dateFormatter } from '@/lib/utils/date-formatters'
 
@@ -28,15 +29,15 @@ export default function DirectTimeChangePanel({
   canConfirm,
   newProcedure = null,
 }: DirectTimeChangePanelProps) {
-  // Using centralized formatters
+  const { t } = useTranslation()
 
   // Current booking time
   const currentDateStr = dateFormatter.format(booking.startTime)
   const currentTimeStr = `${timeFormatter.format(booking.startTime)}–${timeFormatter.format(booking.endTime)}`
 
   // New selected time - показываем selectedSlot если есть, иначе newSlot
-  let newDateStr = 'Wybierz datę'
-  let newTimeStr = 'i czas'
+  let newDateStr = t('management.selectDateLabel')
+  let newTimeStr = t('management.andTime')
   let hasNewTime = false
 
   const displaySlot = selectedSlot || newSlot
@@ -48,7 +49,7 @@ export default function DirectTimeChangePanel({
     hasNewTime = true
   } else if (selectedDate) {
     newDateStr = dateFormatter.format(selectedDate)
-    newTimeStr = 'Wybierz czas'
+    newTimeStr = t('management.selectTimeLabel')
   }
 
   return (
@@ -56,10 +57,10 @@ export default function DirectTimeChangePanel({
       {/* Header */}
       <div className="text-center">
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
-          Zmiana terminu
+          {t('management.termChange')}
         </h3>
         <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
-          Wybierz nową datę i czas w kalendarzu
+          {t('management.selectNewDateAndTimeInCalendar')}
         </p>
       </div>
 
@@ -67,7 +68,7 @@ export default function DirectTimeChangePanel({
       <div className="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-dark-border dark:bg-dark-border/30">
         {newProcedure ? (
           <div className="mb-3">
-            <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">Zmiana procedury:</div>
+            <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.procedureChange')}</div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-neutral-600 dark:text-neutral-400 line-through">{booking.procedureName}</span>
               <span className="text-neutral-400 dark:text-neutral-500">→</span>
@@ -87,7 +88,7 @@ export default function DirectTimeChangePanel({
         <div className="space-y-2">
           <div className="flex items-center justify-between p-3 rounded-lg bg-red-50/50 border border-red-200/50 dark:bg-red-900/10 dark:border-red-800/30">
             <div>
-              <div className="text-sm font-medium text-red-800 dark:text-red-400">Aktualny termin</div>
+              <div className="text-sm font-medium text-red-800 dark:text-red-400">{t('management.currentTermLabel')}</div>
               <div className="text-sm text-red-600 dark:text-red-300">
                 {currentDateStr} • {currentTimeStr}
               </div>
@@ -112,7 +113,7 @@ export default function DirectTimeChangePanel({
                   ? 'text-green-800 dark:text-green-400'
                   : 'text-gray-800 dark:text-gray-400'
               }`}>
-                Nowy termin
+                {t('management.newTermLabel')}
               </div>
               <div className={`text-sm ${
                 hasNewTime 
@@ -146,7 +147,7 @@ export default function DirectTimeChangePanel({
           disabled={isSubmitting}
           className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50 dark:hover:border-dark-border/80"
         >
-          Anuluj
+          {t('common.cancel')}
         </button>
         <button
           type="button"
@@ -157,10 +158,10 @@ export default function DirectTimeChangePanel({
           {isSubmitting ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
-              <span>Zapisywanie...</span>
+              <span>{t('management.saving')}</span>
             </div>
           ) : (
-            'Potwierdź zmianę'
+            t('management.confirmChange')
           )}
         </button>
       </div>

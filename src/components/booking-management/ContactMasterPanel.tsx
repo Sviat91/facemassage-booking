@@ -1,5 +1,6 @@
 "use client"
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import PhoneInput from '../ui/PhoneInput'
 import { clientLog } from '@/lib/client-logger'
 import { useSelectedMaster } from '@/contexts/MasterContext'
@@ -10,6 +11,7 @@ interface ContactMasterPanelProps {
 }
 
 export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterPanelProps) {
+  const { t } = useTranslation()
   const selectedMaster = useSelectedMaster()
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
@@ -78,10 +80,10 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div>
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
-          Skontaktuj się z mistrzem
+          {t('management.contactMasterBtn')}
         </h3>
         <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
-          Mistrz - {selectedMaster.name}
+          {t('management.masterName', { name: selectedMaster.name })}
         </p>
       </div>
       
@@ -95,13 +97,13 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         {/* Full Name */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Imię i nazwisko *
+            {t('management.fullNameLabel')}
           </label>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="np. Jan Kowalski"
+            placeholder={t('management.fullNamePlaceholder')}
             disabled={isSubmitting}
             className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
           />
@@ -110,12 +112,12 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         {/* Phone */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Telefon *
+            {t('management.phoneLabel')}
           </label>
           <PhoneInput
             value={phone}
             onChange={setPhone}
-            placeholder="Numer telefonu z kodem kraju"
+            placeholder={t('management.phonePlaceholder')}
             disabled={isSubmitting}
           />
         </div>
@@ -123,13 +125,13 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         {/* Email */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Email (opcjonalnie)
+            {t('management.emailOptionalLabel')}
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="np. jan@example.com"
+            placeholder={t('management.emailPlaceholder')}
             disabled={isSubmitting}
             className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
           />
@@ -138,18 +140,18 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         {/* Message */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Wiadomość dla mistrza *
+            {t('management.messageForMaster')}
           </label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Opisz swoje pytanie lub problem..."
+            placeholder={t('management.messagePlaceholder')}
             rows={5}
             disabled={isSubmitting}
             className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
           />
           <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
-            Minimum 10 znaków
+            {t('management.minChars')}
           </div>
         </div>
       </div>
@@ -162,7 +164,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           disabled={isSubmitting}
           className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
         >
-          Anuluj
+          {t('common.cancel')}
         </button>
         <button
           type="button"
@@ -176,10 +178,10 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Wysyłanie...
+              {t('management.sending')}
             </>
           ) : (
-            'Wyślij'
+            t('management.send')
           )}
         </button>
       </div>

@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 import type { BookingResult } from './types'
 import { timeFormatter, dateFormatter } from '@/lib/utils/date-formatters'
 
@@ -15,7 +16,7 @@ export default function EditSelectionPanel({
   onBack,
   onChangeProcedure,
 }: EditSelectionPanelProps) {
-  // Using centralized formatters
+  const { t } = useTranslation()
 
   const dateStr = dateFormatter.format(booking.startTime)
   const timeStr = `${timeFormatter.format(booking.startTime)}–${timeFormatter.format(booking.endTime)}`
@@ -25,7 +26,7 @@ export default function EditSelectionPanel({
       {/* Header */}
       <div className="text-center">
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
-          Wybierz typ zmiany
+          {t('management.selectChangeType')}
         </h3>
       </div>
 
@@ -50,10 +51,10 @@ export default function EditSelectionPanel({
             <div className="text-2xl">🕐</div>
             <div>
               <div className="font-medium text-neutral-800 dark:text-dark-text">
-                Zmień termin
+                {t('management.changeTerm')}
               </div>
               <div className="text-sm text-neutral-600 dark:text-dark-muted">
-                Wybierz inną datę lub godzinę
+                {t('management.selectOtherDateOrTime')}
               </div>
             </div>
           </div>
@@ -68,10 +69,10 @@ export default function EditSelectionPanel({
             <div className="text-2xl">💆‍♀️</div>
             <div>
               <div className="font-medium text-neutral-800 dark:text-dark-text">
-                Zmień procedurę
+                {t('management.changeProcedureBtn')}
               </div>
               <div className="text-sm text-neutral-600 dark:text-dark-muted">
-                Wybierz nowy zabieg lub wróć
+                {t('management.selectNewProcedureOrBack')}
               </div>
             </div>
           </div>
@@ -85,7 +86,7 @@ export default function EditSelectionPanel({
           onClick={onBack}
           className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50 dark:hover:border-dark-border/80"
         >
-          ← Powrót do listy rezerwacji
+          {t('management.backToBookingList')}
         </button>
       </div>
     </div>
