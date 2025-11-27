@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useCurrentLanguage } from "@/contexts/LanguageContext";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
 
@@ -45,6 +47,8 @@ export default function DataErasureModal({
   isOpen,
   onClose,
 }: DataErasureModalProps) {
+  const { t } = useTranslation();
+  const language = useCurrentLanguage();
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as
     | string
     | undefined;
@@ -152,7 +156,7 @@ export default function DataErasureModal({
         try {
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
-            language: "pl",
+            language: language === 'uk' ? 'uk-ua' : language,
             callback: (value: string) => setToken(value),
             "error-callback": () => resetTurnstile(),
             "expired-callback": () => resetTurnstile(),
@@ -249,7 +253,7 @@ export default function DataErasureModal({
     } catch (err) {
       clientLog.error("Data erasure failed", err);
       setError({
-        error: "Wystąpił błąd połączenia. Spróbuj ponownie później.",
+        error: t('gdpr.networkError'),
         code: "NETWORK_ERROR",
       });
       setState("error");
@@ -276,16 +280,16 @@ export default function DataErasureModal({
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 id="erase-modal-title" className="text-xl font-semibold text-text dark:text-dark-text">
-              Usuń moje dane
+              {t('gdpr.erase.title')}
             </h2>
             <p className="mt-1 text-sm text-neutral-600 dark:text-dark-muted">
-              Wypełnij formularz, aby trwale usunąć swoje dane osobowe.
+              {t('gdpr.erase.subtitle')}
             </p>
           </div>
           <button
             onClick={handleClose}
             className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-200/70 dark:text-dark-muted dark:hover:bg-dark-border"
-            aria-label="Zamknij"
+            aria-label={t('gdpr.erase.close')}
           >
             ×
           </button>
@@ -301,7 +305,7 @@ export default function DataErasureModal({
               
               <div className="mt-4 space-y-4 text-sm">
                 <div>
-                  <p className="font-medium">Zgodnie z Twoim żądaniem usunięto następujące dane:</p>
+                  <p className="font-medium">{t('gdpr.erase.erasedDataTitle')}</p>
                   <ul className="mt-2 list-disc space-y-1 pl-5">
                     {successData.details.erasedData.map((item, index) => (
                       <li key={index}>• {item}</li>
@@ -310,7 +314,7 @@ export default function DataErasureModal({
                 </div>
                 
                 <div>
-                  <p className="font-medium">Co zostało zachowane (wymogi prawne RODO):</p>
+                  <p className="font-medium">{t('gdpr.erase.retainedDataTitle')}</p>
                   <ul className="mt-2 list-disc space-y-1 pl-5">
                     {successData.details.retainedData.map((item, index) => (
                       <li key={index}>• {item}</li>
@@ -319,7 +323,7 @@ export default function DataErasureModal({
                 </div>
                 
                 <div>
-                  <p className="font-medium">Istniejące rezerwacje:</p>
+                  <p className="font-medium">{t('gdpr.erase.bookingInfoTitle')}</p>
                   <ul className="mt-2 list-disc space-y-1 pl-5">
                     {successData.details.bookingInfo.map((item, index) => (
                       <li key={index}>• {item}</li>
@@ -328,7 +332,7 @@ export default function DataErasureModal({
                 </div>
                 
                 <p className="font-medium">{successData.details.notice}</p>
-                <p>Dziękujemy za zrozumienie i zaufanie.</p>
+                <p>{t('gdpr.erase.thankYou')}</p>
               </div>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -342,10 +346,10 @@ export default function DataErasureModal({
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-500/40 dark:bg-amber-900/30 dark:text-amber-100">
               <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <span aria-hidden="true">ℹ</span>
-                Dane były już wcześniej usunięte
+                {t('gdpr.erase.alreadyErasedTitle')}
               </h3>
               <p className="mt-2 text-sm">
-                Twoje dane zostały już usunięte z naszego systemu. Jeśli nadal masz pytania, skontaktuj się z nami przez formularz wsparcia.
+                {t('gdpr.erase.alreadyErasedMessage')}
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -358,15 +362,15 @@ export default function DataErasureModal({
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="erase-name">
-                Imię i nazwisko
-              </label>
+              {t('form.name')}
+            </label>
               <input
                 id="erase-name"
                 ref={firstFieldRef}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
-                placeholder="Wpisz tak, jak w rezerwacji"
+                placeholder={t('gdpr.export.namePlaceholder')}
                 autoComplete="name"
                 required
               />
@@ -374,26 +378,26 @@ export default function DataErasureModal({
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="erase-phone">
-                Telefon
-              </label>
+              {t('form.phone')}
+            </label>
               <PhoneInput
                 value={phone}
                 onChange={setPhone}
-                placeholder="Numer telefonu z kodem kraju"
+                placeholder={t('gdpr.export.phonePlaceholder')}
                 error={state === "error" && error?.code === "INVALID_PHONE" ? error.error : undefined}
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="erase-email">
-                E-mail <span className="text-xs text-neutral-500 dark:text-dark-muted">(opcjonalnie)</span>
+              {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
               </label>
               <input
                 id="erase-email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
-                placeholder="twoj.email@example.com"
+                placeholder={t('gdpr.export.emailPlaceholder')}
                 autoComplete="email"
               />
             </div>
@@ -407,7 +411,7 @@ export default function DataErasureModal({
                 required
               />
               <span>
-                Rozumiem, że usunięcie danych jest nieodwracalne i może wpłynąć na możliwość korzystania z usług. Chcę trwale usunąć wszystkie moje dane osobowe z systemu.
+                {t('gdpr.erase.acknowledgement')}
               </span>
             </label>
 
@@ -448,7 +452,7 @@ export default function DataErasureModal({
                 className={`btn btn-primary flex-1 ${!canSubmit ? 'opacity-60 pointer-events-none' : ''}`}
                 disabled={!canSubmit || isLoading}
               >
-                {isLoading ? 'Usuwanie danych…' : 'Usuń moje dane'}
+                {isLoading ? t('gdpr.erase.loading') : t('gdpr.erase.submit')}
               </button>
             </div>
           </form>

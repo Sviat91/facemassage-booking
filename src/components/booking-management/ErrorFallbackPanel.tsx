@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 
 interface ErrorFallbackPanelProps {
   onRetry: () => void
@@ -6,6 +7,8 @@ interface ErrorFallbackPanelProps {
 }
 
 export default function ErrorFallbackPanel({ onRetry, onContactMaster }: ErrorFallbackPanelProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="text-center py-6">
@@ -15,17 +18,17 @@ export default function ErrorFallbackPanel({ onRetry, onContactMaster }: ErrorFa
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text mb-2">
-          Wystąpił błąd
+          {t('management.errorOccurred')}
         </h3>
         <p className="text-sm text-neutral-600 dark:text-dark-muted mb-6">
-          Nie można wyświetlić danych. Spróbuj ponownie.
+          {t('management.cannotDisplayData')}
         </p>
         <div className="space-y-3">
           <button type="button" onClick={onRetry} className="btn btn-primary w-full">
-            Sprawdź ponownie
+            {t('management.checkAgain')}
           </button>
           <button type="button" onClick={onContactMaster} className="btn btn-outline w-full">
-            Skontaktuj się z mistrzem
+            {t('management.contactMaster')}
           </button>
         </div>
       </div>

@@ -1,14 +1,16 @@
 "use client"
-import type { Metadata } from 'next'
 import BackButton from '../../components/BackButton'
 import ThemeToggle from '../../components/ThemeToggle'
+import LanguageToggle from '../../components/LanguageToggle'
 import ConsentWithdrawalModal from '../../components/ConsentWithdrawalModal'
 import DataErasureModal from '../../components/DataErasureModal'
 import DataExportModal from '../../components/DataExportModal'
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { clientLog } from '@/lib/client-logger'
 
 export default function SupportPage() {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -139,15 +141,19 @@ export default function SupportPage() {
   return (
     <main className="min-h-screen relative">
       <BackButton />
-      <ThemeToggle />
+      {/* Theme and Language toggles - same position as main page */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
       <div className="container mx-auto max-w-6xl px-6 py-6">
         {/* Header */}
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-3">
-            Centrum Pomocy
+            {t('support.title')}
           </h1>
           <p className="text-neutral-600 dark:text-dark-muted max-w-2xl mx-auto">
-            Potrzebujesz pomocy? Jesteśmy tutaj, aby odpowiedzieć na Twoje pytania i rozwiązać problemy.
+            {t('support.subtitle')}
           </p>
         </div>
 
@@ -156,7 +162,7 @@ export default function SupportPage() {
           <div className="lg:col-span-2">
             <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-6">
               <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">
-                Skontaktuj się z nami
+                {t('support.contactForm')}
               </h2>
               
               {submitted ? (
@@ -166,9 +172,9 @@ export default function SupportPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-text dark:text-dark-text mb-2">Wiadomość wysłana!</h3>
+                  <h3 className="text-xl font-semibold text-text dark:text-dark-text mb-2">{t('support.successTitle')}</h3>
                   <p className="text-neutral-600 dark:text-dark-muted mb-6">
-                    Dziękujemy za kontakt. Odpowiemy na Twoją wiadomość w ciągu 72 godzin.
+                    {t('support.successMessage')}
                   </p>
                   <button 
                     onClick={() => {
@@ -177,7 +183,7 @@ export default function SupportPage() {
                     }}
                     className="btn btn-primary"
                   >
-                    Wyślij kolejną wiadomość
+                    {t('support.sendAnother')}
                   </button>
                 </div>
               ) : (
@@ -185,7 +191,7 @@ export default function SupportPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
-                        Imię i nazwisko *
+                        {t('form.name')} *
                       </label>
                       <input
                         type="text"
@@ -213,7 +219,7 @@ export default function SupportPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
-                      Temat *
+                      {t('support.subject')} *
                     </label>
                     <select
                       required
@@ -221,19 +227,19 @@ export default function SupportPage() {
                       onChange={(e) => handleInputChange('subject', e.target.value)}
                       className="w-full rounded-xl border border-border bg-white/80 px-4 py-3 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value="">Wybierz temat</option>
-                      <option value="booking">Problemy z rezerwacją</option>
-                      <option value="cancellation">Anulowanie/zmiana wizyty</option>
-                      <option value="payment">Płatności i faktury</option>
-                      <option value="technical">Problemy techniczne ze stroną</option>
-                      <option value="privacy">Ochrona danych osobowych</option>
-                      <option value="other">Inne pytanie</option>
+                      <option value="">{t('form.selectTopic')}</option>
+                      <option value="booking">{t('support.topics.booking')}</option>
+                      <option value="cancellation">{t('support.topics.booking')}</option>
+                      <option value="payment">{t('support.topics.other')}</option>
+                      <option value="technical">{t('support.topics.technical')}</option>
+                      <option value="privacy">{t('support.topics.privacy')}</option>
+                      <option value="other">{t('support.topics.other')}</option>
                     </select>
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
-                      Wiadomość *
+                      {t('form.message')} *
                     </label>
                     <textarea
                       required
@@ -270,7 +276,7 @@ export default function SupportPage() {
                     disabled={isSubmitting || !!(siteKey && !turnstileToken)}
                     className={`btn btn-primary w-full py-3 ${isSubmitting || (siteKey && !turnstileToken) ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    {isSubmitting ? 'Wysyłanie...' : 'Wyślij wiadomość'}
+                    {isSubmitting ? t('support.sending') : t('support.send')}
                   </button>
                 </form>
               )}
@@ -328,24 +334,24 @@ export default function SupportPage() {
                   onClick={handleOpenErasureModal}
                   className="w-full text-left p-3 rounded-lg border border-border dark:border-dark-border hover:bg-primary/5 dark:hover:bg-accent/5 transition-colors"
                 >
-                  <div className="font-medium text-text dark:text-dark-text text-sm">Usuń moje dane</div>
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">Zgodnie z GDPR</div>
+                  <div className="font-medium text-text dark:text-dark-text text-sm">{t('support.eraseButton')}</div>
+                  <div className="text-xs text-neutral-600 dark:text-dark-muted">{t('support.eraseData')}</div>
                 </button>
                 
                 <button 
                   onClick={handleOpenExportModal}
                   className="w-full text-left p-3 rounded-lg border border-border dark:border-dark-border hover:bg-primary/5 dark:hover:bg-accent/5 transition-colors"
                 >
-                  <div className="font-medium text-text dark:text-dark-text text-sm">Pobierz moje dane</div>
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">Eksport danych osobowych</div>
+                  <div className="font-medium text-text dark:text-dark-text text-sm">{t('support.exportButton')}</div>
+                  <div className="text-xs text-neutral-600 dark:text-dark-muted">{t('support.exportData')}</div>
                 </button>
                 
                 <button 
                   onClick={handleOpenConsentModal}
                   className="w-full text-left p-3 rounded-lg border border-border dark:border-dark-border hover:bg-primary/5 dark:hover:bg-accent/5 transition-colors"
                 >
-                  <div className="font-medium text-text dark:text-dark-text text-sm">Wycofaj zgody</div>
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">Zarządzanie zgodami</div>
+                  <div className="font-medium text-text dark:text-dark-text text-sm">{t('support.withdrawButton')}</div>
+                  <div className="text-xs text-neutral-600 dark:text-dark-muted">{t('support.withdrawConsent')}</div>
                 </button>
               </div>
             </div>

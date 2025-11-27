@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useCurrentLanguage } from "@/contexts/LanguageContext";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
 
@@ -134,6 +136,8 @@ export default function DataExportModal({
   isOpen,
   onClose,
 }: DataExportModalProps) {
+  const { t } = useTranslation();
+  const language = useCurrentLanguage();
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as
     | string
     | undefined;
@@ -239,7 +243,7 @@ export default function DataExportModal({
         try {
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
-            language: "pl",
+            language: language === 'uk' ? 'uk-ua' : language,
             callback: (value: string) => setToken(value),
             "error-callback": () => resetTurnstile(),
             "expired-callback": () => resetTurnstile(),
@@ -321,7 +325,7 @@ export default function DataExportModal({
     } catch (err) {
       clientLog.error("Data export failed", err);
       setError({
-        error: "Wystąpił błąd połączenia. Spróbuj ponownie później.",
+        error: t('gdpr.networkError'),
         code: "NETWORK_ERROR",
       });
       setState("error");
@@ -362,10 +366,10 @@ export default function DataExportModal({
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 id="export-modal-title" className="text-xl font-semibold text-text dark:text-dark-text">
-              Pobierz moje dane
+              {t('gdpr.export.title')}
             </h2>
             <p className="mt-1 text-sm text-neutral-600 dark:text-dark-muted">
-              Wypełnij formularz, aby wyeksportować swoje dane osobowe.
+              {t('gdpr.export.subtitle')}
             </p>
           </div>
           <button
@@ -382,7 +386,7 @@ export default function DataExportModal({
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-900/30 dark:text-emerald-100">
               <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <span aria-hidden="true">✓</span>
-                Twoje dane osobowe
+                {t('gdpr.export.successTitle')}
               </h3>
               
               <div className="mt-4 space-y-4 text-sm">
@@ -443,15 +447,15 @@ export default function DataExportModal({
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-name">
-                Imię i nazwisko
-              </label>
+              {t('form.name')}
+            </label>
               <input
                 id="export-name"
                 ref={firstFieldRef}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
-                placeholder="Wpisz tak, jak w rezerwacji"
+                placeholder={t('gdpr.export.namePlaceholder')}
                 autoComplete="name"
                 required
               />
@@ -459,26 +463,26 @@ export default function DataExportModal({
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-phone">
-                Telefon
-              </label>
+              {t('form.phone')}
+            </label>
               <PhoneInput
                 value={phone}
                 onChange={setPhone}
-                placeholder="Numer telefonu z kodem kraju"
+                placeholder={t('gdpr.export.phonePlaceholder')}
                 error={state === "error" && error?.code === "INVALID_PHONE" ? error.error : undefined}
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-email">
-                E-mail <span className="text-xs text-neutral-500 dark:text-dark-muted">(opcjonalnie)</span>
+              {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
               </label>
               <input
                 id="export-email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
-                placeholder="twoj.email@example.com"
+                placeholder={t('gdpr.export.emailPlaceholder')}
                 autoComplete="email"
               />
             </div>
@@ -520,7 +524,7 @@ export default function DataExportModal({
                 className={`btn btn-primary flex-1 ${!canSubmit ? 'opacity-60 pointer-events-none' : ''}`}
                 disabled={!canSubmit || isLoading}
               >
-                {isLoading ? 'Pobieranie danych…' : 'Pobierz moje dane'}
+                {isLoading ? t('gdpr.export.loading') : t('gdpr.export.submit')}
               </button>
             </div>
           </form>

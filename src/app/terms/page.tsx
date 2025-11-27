@@ -1,29 +1,41 @@
-import type { Metadata } from 'next'
+"use client"
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import BackButton from '../../components/BackButton'
 import ThemeToggle from '../../components/ThemeToggle'
-
-export const metadata: Metadata = {
-  title: 'Warunki Korzystania - Somique Beauty',
-  description: 'Warunki korzystania z usług Somique Beauty',
-}
+import LanguageToggle from '../../components/LanguageToggle'
 
 export default function TermsPage() {
+  const { t } = useTranslation();
+  const language = useCurrentLanguage();
   return (
     <main className="min-h-screen relative">
       <BackButton />
-      <ThemeToggle />
+      {/* Theme and Language toggles - same position as main page */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
       <div className="container mx-auto max-w-4xl px-6 py-8">
         {/* Header */}
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-2">
-            Warunki Korzystania z Usług
+            {t('terms.title')}
           </h1>
         </div>
 
         {/* Content */}
         <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-8">
           <div className="prose prose-neutral dark:prose-invert max-w-none">
+            
+            {language !== 'pl' && (
+              <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-200 mb-0">
+                  {t('terms.legalNotice')}
+                </p>
+              </div>
+            )}
             
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 1. POSTANOWIENIA OGÓLNE</h2>

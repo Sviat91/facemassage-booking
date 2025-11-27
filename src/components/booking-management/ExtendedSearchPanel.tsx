@@ -1,5 +1,6 @@
 "use client"
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ExtendedSearchPanelProps {
   initialFullName?: string
@@ -18,6 +19,7 @@ export default function ExtendedSearchPanel({
   onBack,
   isSearching = false,
 }: ExtendedSearchPanelProps) {
+  const { t } = useTranslation()
   const [fullName, setFullName] = useState(initialFullName)
   const [phone, setPhone] = useState(initialPhone)
   const [email, setEmail] = useState(initialEmail)
@@ -50,10 +52,10 @@ export default function ExtendedSearchPanel({
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div>
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
-          Rozszerzony zakres dat
+          {t('management.extendedDateRange')}
         </h3>
         <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
-          Wprowadź dane i wybierz zakres dat do przeszukania
+          {t('management.enterDataAndSelectDateRange')}
         </p>
       </div>
       
@@ -61,13 +63,13 @@ export default function ExtendedSearchPanel({
         {/* Full Name */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Imię i nazwisko *
+            {t('management.fullNameLabel')}
           </label>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="np. Jan Kowalski"
+            placeholder={t('management.fullNamePlaceholder')}
             className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
           />
         </div>
@@ -75,13 +77,13 @@ export default function ExtendedSearchPanel({
         {/* Phone */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Telefon *
+            {t('management.phoneLabel')}
           </label>
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="np. 123456789"
+            placeholder={t('management.phonePlaceholder')}
             className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
           />
         </div>
@@ -89,13 +91,13 @@ export default function ExtendedSearchPanel({
         {/* Email */}
         <div>
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
-            Email (opcjonalnie)
+            {t('management.emailOptionalLabel')}
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="np. jan@example.com"
+            placeholder={t('management.emailPlaceholder')}
             className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
           />
         </div>
@@ -103,13 +105,13 @@ export default function ExtendedSearchPanel({
         {/* Date Range */}
         <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-400/30 dark:bg-amber-400/10">
           <div className="text-sm font-medium text-amber-800 dark:text-amber-400 mb-3">
-            📅 Zakres dat do przeszukania
+            {t('management.dateRangeSearch')}
           </div>
           
           <div className="space-y-3">
             <div className="relative">
               <label htmlFor="extended-search-start-date" className="text-xs text-amber-700 dark:text-amber-400 mb-1 block">
-                Data od:
+                {t('management.dateFrom')}
               </label>
               <div className="relative">
                 <input
@@ -128,7 +130,7 @@ export default function ExtendedSearchPanel({
             
             <div className="relative">
               <label htmlFor="extended-search-end-date" className="text-xs text-amber-700 dark:text-amber-400 mb-1 block">
-                Data do:
+                {t('management.dateTo')}
               </label>
               <div className="relative">
                 <input
@@ -147,7 +149,7 @@ export default function ExtendedSearchPanel({
           </div>
           
           <div className="text-xs text-amber-600 dark:text-amber-300 mt-2">
-            Możesz przeszukać do 180 dni w przyszłość
+            {t('management.canSearchUpTo180Days')}
           </div>
         </div>
       </div>
@@ -160,7 +162,7 @@ export default function ExtendedSearchPanel({
           disabled={isSearching}
           className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
         >
-          Wróć
+          {t('management.back')}
         </button>
         <button
           type="button"
@@ -174,10 +176,10 @@ export default function ExtendedSearchPanel({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Szukanie...
+              {t('management.searchingBookings')}
             </>
           ) : (
-            'Szukaj'
+            t('management.searchBookings')
           )}
         </button>
       </div>

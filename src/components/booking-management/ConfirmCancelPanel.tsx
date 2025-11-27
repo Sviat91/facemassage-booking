@@ -1,4 +1,6 @@
 "use client"
+import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import type { BookingResult } from './types'
 
 interface ConfirmCancelPanelProps {
@@ -16,7 +18,11 @@ export default function ConfirmCancelPanel({
   onConfirm,
   onBack,
 }: ConfirmCancelPanelProps) {
-  const dateLabel = new Intl.DateTimeFormat('pl-PL', {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  
+  const dateLocale = language === 'uk' ? 'uk-UA' : language === 'en' ? 'en-US' : 'pl-PL'
+  const dateLabel = new Intl.DateTimeFormat(dateLocale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -27,7 +33,7 @@ export default function ConfirmCancelPanel({
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="text-sm text-neutral-600 dark:text-dark-muted">
-        Czy na pewno chcesz anulować tę rezerwację?
+        {t('management.cancelConfirm')}
       </div>
 
       <div className="rounded-xl border border-red-300 bg-red-50 p-3 dark:border-red-400 dark:bg-red-400/10">
@@ -43,7 +49,7 @@ export default function ConfirmCancelPanel({
 
       <div className="flex gap-2">
         <button type="button" onClick={onBack} className="btn btn-outline flex-1">
-          Nie, wróć
+          {t('management.cancelNo')}
         </button>
         <button
           type="button"
@@ -53,7 +59,7 @@ export default function ConfirmCancelPanel({
             isSubmitting ? 'opacity-60 pointer-events-none' : ''
           }`}
         >
-          {isSubmitting ? 'Anulowanie…' : 'Tak, anuluj'}
+          {isSubmitting ? t('management.cancelling') : t('management.cancelYes')}
         </button>
       </div>
     </div>

@@ -1,10 +1,13 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 
 interface ContactMasterSuccessPanelProps {
   onClose: () => void
 }
 
 export default function ContactMasterSuccessPanel({ onClose }: ContactMasterSuccessPanelProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-4">
       {/* Success Header - Beautiful styled success message */}
@@ -15,10 +18,10 @@ export default function ContactMasterSuccessPanel({ onClose }: ContactMasterSucc
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-          Wiadomość wysłana!
+          {t('management.messageSent')}
         </h3>
         <p className="text-sm text-green-600 dark:text-green-300 mt-1">
-          Twoja wiadomość została przekazana mistrzowi
+          {t('management.messageSentToMaster')}
         </p>
       </div>
 
@@ -29,9 +32,9 @@ export default function ContactMasterSuccessPanel({ onClose }: ContactMasterSucc
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">Mistrz skontaktuje się z Tobą wkrótce</p>
+            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">{t('management.masterWillContact')}</p>
             <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-              Otrzymaliśmy Twoją wiadomość i przekazaliśmy ją mistrzowi. Spodziewaj się odpowiedzi w najbliższym czasie.
+              {t('management.messageReceivedDesc')}
             </p>
           </div>
         </div>
@@ -44,7 +47,7 @@ export default function ContactMasterSuccessPanel({ onClose }: ContactMasterSucc
           onClick={onClose}
           className="rounded-lg bg-green-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md dark:bg-green-500 dark:hover:bg-green-600"
         >
-          Zamknij
+          {t('common.close')}
         </button>
       </div>
     </div>

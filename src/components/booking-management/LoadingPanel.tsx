@@ -1,10 +1,13 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 
 export default function LoadingPanel() {
+  const { t } = useTranslation()
+
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="text-center text-neutral-600 dark:text-dark-muted">
-        Szukanie rezerwacji...
+        {t('management.searchingBookings')}
       </div>
       <div className="space-y-3">
         {[1, 2, 3].map((item) => (

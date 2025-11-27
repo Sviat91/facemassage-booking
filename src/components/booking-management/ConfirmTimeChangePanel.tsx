@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 import type { BookingResult, SlotSelection } from './types'
 import { timeFormatter, dateFormatter } from '@/lib/utils/date-formatters'
 
@@ -20,7 +21,7 @@ export default function ConfirmTimeChangePanel({
   onConfirm,
   onBack,
 }: ConfirmTimeChangePanelProps) {
-  // Using centralized formatters
+  const { t } = useTranslation()
 
   // Current booking time
   const currentDateStr = dateFormatter.format(booking.startTime)
@@ -37,10 +38,10 @@ export default function ConfirmTimeChangePanel({
       {/* Header */}
       <div className="text-center">
         <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
-          Potwierdzenie zmiany terminu
+          {t('management.termChangeConfirmation')}
         </h3>
         <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
-          Sprawdź szczegóły przed potwierdzeniem
+          {t('management.checkDetailsBeforeConfirm')}
         </p>
       </div>
 
@@ -54,7 +55,7 @@ export default function ConfirmTimeChangePanel({
         <div className="space-y-2">
           <div className="flex items-center justify-between p-3 rounded-lg bg-red-50/50 border border-red-200/50 dark:bg-red-900/10 dark:border-red-800/30">
             <div>
-              <div className="text-sm font-medium text-red-800 dark:text-red-400">Aktualny termin</div>
+              <div className="text-sm font-medium text-red-800 dark:text-red-400">{t('management.currentTermLabel')}</div>
               <div className="text-sm text-red-600 dark:text-red-300">
                 {currentDateStr} • {currentTimeStr}
               </div>
@@ -70,7 +71,7 @@ export default function ConfirmTimeChangePanel({
           {/* New time */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-green-50/50 border border-green-200/50 dark:bg-green-900/10 dark:border-green-800/30">
             <div>
-              <div className="text-sm font-medium text-green-800 dark:text-green-400">Nowy termin</div>
+              <div className="text-sm font-medium text-green-800 dark:text-green-400">{t('management.newTermLabel')}</div>
               <div className="text-sm text-green-600 dark:text-green-300">
                 {newDateStr} • {newTimeStr}
               </div>
@@ -95,7 +96,7 @@ export default function ConfirmTimeChangePanel({
           disabled={isSubmitting}
           className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50 dark:hover:border-dark-border/80"
         >
-          Anuluj
+          {t('common.cancel')}
         </button>
         <button
           type="button"
@@ -106,10 +107,10 @@ export default function ConfirmTimeChangePanel({
           {isSubmitting ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
-              <span>Zapisywanie...</span>
+              <span>{t('management.saving')}</span>
             </div>
           ) : (
-            'Potwierdź zmianę'
+            t('management.confirmChange')
           )}
         </button>
       </div>

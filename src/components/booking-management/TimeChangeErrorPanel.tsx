@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from 'react-i18next'
 import type { BookingResult } from './types'
 
 interface TimeChangeErrorPanelProps {
@@ -17,6 +18,7 @@ export default function TimeChangeErrorPanel({
   onBackToResults,
   onTryAgain,
 }: TimeChangeErrorPanelProps) {
+  const { t } = useTranslation()
   const booking = timeChangeSession?.originalBooking
   
   return (
@@ -29,10 +31,10 @@ export default function TimeChangeErrorPanel({
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
-          Nie udało się zmienić terminu
+          {t('management.termChangeFailed')}
         </h3>
         <p className="text-sm text-red-600 dark:text-red-300 mt-1">
-          Wystąpił problem podczas aktualizacji rezerwacji
+          {t('management.updateProblem')}
         </p>
       </div>
 
@@ -42,13 +44,13 @@ export default function TimeChangeErrorPanel({
           <div className="space-y-3">
             {/* Procedure */}
             <div>
-              <span className="text-sm font-medium text-red-800 dark:text-red-200">Zabieg:</span>
+              <span className="text-sm font-medium text-red-800 dark:text-red-200">{t('management.treatmentLabel')}</span>
               <p className="text-red-900 dark:text-red-100 font-medium">{booking.procedureName}</p>
             </div>
 
             {/* Current Time */}
             <div>
-              <span className="text-sm font-medium text-red-800 dark:text-red-200">Aktualny termin:</span>
+              <span className="text-sm font-medium text-red-800 dark:text-red-200">{t('management.currentTerm')}</span>
               <p className="text-red-900 dark:text-red-100 font-medium">
                 {new Intl.DateTimeFormat('pl-PL', {
                   weekday: 'long',
@@ -71,7 +73,7 @@ export default function TimeChangeErrorPanel({
 
             {/* Client Info */}
             <div>
-              <span className="text-sm font-medium text-red-800 dark:text-red-200">Klient:</span>
+              <span className="text-sm font-medium text-red-800 dark:text-red-200">{t('management.clientLabel')}</span>
               <p className="text-red-900 dark:text-red-100">{booking.firstName} {booking.lastName}</p>
             </div>
           </div>
@@ -85,9 +87,9 @@ export default function TimeChangeErrorPanel({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
           <div>
-            <p className="text-sm text-red-800 dark:text-red-200 font-medium">Szczegóły błędu:</p>
+            <p className="text-sm text-red-800 dark:text-red-200 font-medium">{t('management.errorDetails')}</p>
             <p className="text-xs text-red-600 dark:text-red-300 mt-1">
-              {errorMessage || 'Wystąpił nieoczekiwany błąd podczas zmiany terminu.'}
+              {errorMessage || t('management.unexpectedError')}
             </p>
           </div>
         </div>
@@ -100,9 +102,9 @@ export default function TimeChangeErrorPanel({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">Potrzebujesz pomocy?</p>
+            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">{t('management.needHelp')}</p>
             <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-              Skontaktuj się z obsługą lub napisz bezpośrednio do mistrza. Twoja obecna rezerwacja pozostaje bez zmian.
+              {t('management.contactSupportOrMaster')}
             </p>
           </div>
         </div>
@@ -115,14 +117,14 @@ export default function TimeChangeErrorPanel({
           onClick={onTryAgain}
           className="flex-1 rounded-lg border border-red-300 bg-white px-4 py-3 text-sm font-medium text-red-700 transition-all duration-200 hover:bg-red-50 hover:border-red-400 hover:shadow-sm dark:border-red-700 dark:bg-dark-card dark:text-red-300 dark:hover:bg-red-900/10"
         >
-          Spróbuj ponownie
+          {t('management.tryAgain')}
         </button>
         <button
           type="button"
           onClick={onBackToResults}
           className="flex-1 rounded-lg bg-neutral-600 px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-neutral-700 hover:shadow-md dark:bg-neutral-500 dark:hover:bg-neutral-600"
         >
-          Powrót do wyników
+          {t('management.backToResults')}
         </button>
       </div>
     </div>
