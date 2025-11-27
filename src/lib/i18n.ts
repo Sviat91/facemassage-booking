@@ -25,6 +25,8 @@ const resources = {
   en: { translation: en },
 }
 
+// Always start with default language to avoid hydration mismatch
+// Language will be synced from localStorage in LanguageContext after mount
 i18n
   .use(initReactI18next)
   .init({

@@ -49,14 +49,13 @@ function setStoredLanguage(lang: Language): void {
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { i18n } = useTranslation()
   
-  const [language, setLanguageState] = useState<Language>(() => {
-    return getStoredLanguage() ?? DEFAULT_LANGUAGE
-  })
+  // Always start with default language to avoid hydration mismatch
+  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE)
 
-  // Sync i18n with initial language on mount
+  // Sync language from localStorage AFTER hydration is complete
   useEffect(() => {
     const storedLang = getStoredLanguage()
-    if (storedLang && storedLang !== i18n.language) {
+    if (storedLang && storedLang !== DEFAULT_LANGUAGE) {
       i18n.changeLanguage(storedLang)
       setLanguageState(storedLang)
     }

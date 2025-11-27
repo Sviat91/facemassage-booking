@@ -1,4 +1,6 @@
 "use client"
+import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import type { BookingResult } from './types'
 
 interface CancelSuccessPanelProps {
@@ -7,7 +9,11 @@ interface CancelSuccessPanelProps {
 }
 
 export default function CancelSuccessPanel({ booking, onBackToResults }: CancelSuccessPanelProps) {
-  const dateLabel = new Intl.DateTimeFormat('pl-PL', {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  
+  const dateLocale = language === 'uk' ? 'uk-UA' : language === 'en' ? 'en-US' : 'pl-PL'
+  const dateLabel = new Intl.DateTimeFormat(dateLocale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -25,19 +31,19 @@ export default function CancelSuccessPanel({ booking, onBackToResults }: CancelS
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-          Rezerwacja została anulowana
+          {t('management.cancelSuccess')}
         </h3>
         <p className="text-sm text-green-600 dark:text-green-300 mt-1">
-          Pomyślnie usunęliśmy Twoją rezerwację z kalendarza
+          {t('management.cancelSuccessDesc')}
         </p>
       </div>
 
       {/* Booking info */}
       <div className="rounded-xl border border-green-200 bg-green-50/50 p-4 dark:border-green-800 dark:bg-green-900/20">
         <div className="space-y-2">
-          <div className="text-sm font-medium text-green-800 dark:text-green-200">Zabieg:</div>
+          <div className="text-sm font-medium text-green-800 dark:text-green-200">{t('management.procedure')}</div>
           <div className="text-green-900 dark:text-green-100 font-medium">{booking.procedureName}</div>
-          <div className="text-sm font-medium text-green-800 dark:text-green-200 mt-2">Termin:</div>
+          <div className="text-sm font-medium text-green-800 dark:text-green-200 mt-2">{t('management.term')}</div>
           <div className="text-green-900 dark:text-green-100">{dateLabel}</div>
         </div>
       </div>
@@ -49,9 +55,9 @@ export default function CancelSuccessPanel({ booking, onBackToResults }: CancelS
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">Anulowanie zakończone</p>
+            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">{t('management.cancelDone')}</p>
             <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-              Jeżeli chcesz umówić nowy termin, wróć do wyników i wybierz inną rezerwację lub utwórz nową.
+              {t('management.cancelDoneDesc')}
             </p>
           </div>
         </div>
@@ -64,7 +70,7 @@ export default function CancelSuccessPanel({ booking, onBackToResults }: CancelS
           onClick={onBackToResults}
           className="rounded-lg bg-green-600 px-6 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md dark:bg-green-500 dark:hover:bg-green-600"
         >
-          Powrót do wyników
+          {t('management.backToResults')}
         </button>
       </div>
     </div>
