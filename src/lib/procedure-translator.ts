@@ -1,5 +1,14 @@
 import type { Language } from '@/lib/i18n'
 
+// Normalize string for comparison: trim, normalize unicode, collapse whitespace
+function normalizeForComparison(str: string): string {
+  return str
+    .normalize('NFC') // Normalize unicode (handles different representations of ż, ą, etc.)
+    .trim()
+    .replace(/\s+/g, ' ') // Collapse multiple spaces
+    .toLowerCase()
+}
+
 // Procedure translation dictionaries
 // Keys are Polish names (from Google Sheets), values are translations
 // Only procedures that exist in the API response will be displayed
@@ -55,11 +64,25 @@ const procedureTranslations: Record<string, Record<Language, string>> = {
     uk: "Моделюючий масаж обличчя, шиї та декольте",
     en: "Contouring face, neck and décolleté massage"
   },
+  // Variant with Ż
+  "PRZEZPOLICZKOWY MASAŻ TWARZY": {
+    pl: "PRZEZPOLICZKOWY MASAŻ TWARZY",
+    uk: "Міжщелепний масаж обличчя",
+    en: "Transoral facial massage"
+  },
+  // Variant without Ż (as in Google Sheets)
   "PRZEZPOLICZKOWY MASAZ TWARZY": {
     pl: "PRZEZPOLICZKOWY MASAZ TWARZY",
     uk: "Міжщелепний масаж обличчя",
     en: "Transoral facial massage"
   },
+  // Variant with Ż
+  "PRZEZPOLICZKOWY MASAŻ TWARZY + ELEMENTY OSTEOPATII": {
+    pl: "PRZEZPOLICZKOWY MASAŻ TWARZY + ELEMENTY OSTEOPATII",
+    uk: "Міжщелепний масаж обличчя + елементи остеопатії",
+    en: "Transoral facial massage + osteopathy elements"
+  },
+  // Variant without Ż (as in Google Sheets)
   "PRZEZPOLICZKOWY MASAZ TWARZY + ELEMENTY OSTEOPATII": {
     pl: "PRZEZPOLICZKOWY MASAZ TWARZY + ELEMENTY OSTEOPATII",
     uk: "Міжщелепний масаж обличчя + елементи остеопатії",
@@ -79,13 +102,26 @@ const procedureTranslations: Record<string, Record<Language, string>> = {
   },
   
   // Cosmetology - Cleansing
+  // Variant with Ź
   "OCZYSZCZANIE TWARZY (ULTRADŹWIEKI + MECHANICZNE)": {
     pl: "OCZYSZCZANIE TWARZY (ULTRADŹWIEKI + MECHANICZNE)",
     uk: "Очищення обличчя (ультразвук + механічне)",
     en: "Facial cleansing (ultrasound + mechanical)"
   },
+  // Variant without Ź (as in Google Sheets)
+  "OCZYSZCZANIE TWARZY (ULTRADZWIEKI + MECHANICZNE)": {
+    pl: "OCZYSZCZANIE TWARZY (ULTRADZWIEKI + MECHANICZNE)",
+    uk: "Очищення обличчя (ультразвук + механічне)",
+    en: "Facial cleansing (ultrasound + mechanical)"
+  },
   "OCZYSZCZANIE TWARZY+ PEELING": {
     pl: "OCZYSZCZANIE TWARZY+ PEELING",
+    uk: "Очищення обличчя + пілінг",
+    en: "Facial cleansing + peeling"
+  },
+  // Variant with space before +
+  "OCZYSZCZANIE TWARZY + PEELING": {
+    pl: "OCZYSZCZANIE TWARZY + PEELING",
     uk: "Очищення обличчя + пілінг",
     en: "Facial cleansing + peeling"
   },
@@ -105,6 +141,24 @@ const procedureTranslations: Record<string, Record<Language, string>> = {
     pl: "PEELING BIOREWITALIZUJĄCY: ¤PRX T33 ¤BIOREPEEL ¤Ninja",
     uk: "Біоревіталізуючий пілінг: PRX T33, BIOREPEEL, Ninja",
     en: "Biorevitalizing peeling: PRX T33, BIOREPEEL, Ninja"
+  },
+  // Variant with ▫️ symbols and without Ą
+  "PEELING BIOREWITALIZUJACY:▫️PRX T33▫️BIOREPEEL▫️Ninja": {
+    pl: "PEELING BIOREWITALIZUJACY:▫️PRX T33▫️BIOREPEEL▫️Ninja",
+    uk: "Біоревіталізуючий пілінг: PRX T33, BIOREPEEL, Ninja",
+    en: "Biorevitalizing peeling: PRX T33, BIOREPEEL, Ninja"
+  },
+  // Variant without Ą and with different separators
+  "PEELING BIOREWITALIZUJACY: ▫️PRX T33 ▫️BIOREPEEL ▫️Ninja": {
+    pl: "PEELING BIOREWITALIZUJACY: ▫️PRX T33 ▫️BIOREPEEL ▫️Ninja",
+    uk: "Біоревіталізуючий пілінг: PRX T33, BIOREPEEL, Ninja",
+    en: "Biorevitalizing peeling: PRX T33, BIOREPEEL, Ninja"
+  },
+  // Variant without Ninja
+  "PEELING BIOREWITALIZUJACY:▫️PRX T33▫️BIOREPEEL": {
+    pl: "PEELING BIOREWITALIZUJACY:▫️PRX T33▫️BIOREPEEL",
+    uk: "Біоревіталізуючий пілінг: PRX T33, BIOREPEEL",
+    en: "Biorevitalizing peeling: PRX T33, BIOREPEEL"
   },
   
   // Cosmetology - Other treatments
@@ -163,16 +217,16 @@ export function translateProcedureName(namePl: string, targetLang: Language): st
     return namePl
   }
 
-  // Look up in dictionary
+  // Look up in dictionary (exact match)
   const translations = procedureTranslations[namePl]
   if (translations && translations[targetLang]) {
     return translations[targetLang]
   }
 
-  // Try case-insensitive match
-  const lowerName = namePl.toLowerCase()
+  // Try normalized match (handles whitespace, unicode normalization, case differences)
+  const normalizedInput = normalizeForComparison(namePl)
   for (const [key, value] of Object.entries(procedureTranslations)) {
-    if (key.toLowerCase() === lowerName && value[targetLang]) {
+    if (normalizeForComparison(key) === normalizedInput && value[targetLang]) {
       return value[targetLang]
     }
   }
