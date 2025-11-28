@@ -11,50 +11,39 @@ interface ReviewCard extends ReviewImage {
   renderHeight: number
 }
 
-export default function ReviewsMarquee() {
+interface ReviewsMarqueeProps {
+  initialReviews: ReviewImage[]
+}
+
+export default function ReviewsMarquee({ initialReviews }: ReviewsMarqueeProps) {
   const [reviews, setReviews] = useState<ReviewCard[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchReviews() {
-      try {
-        const res = await fetch('/api/reviews')
-        if (!res.ok) throw new Error('Failed to fetch reviews')
-        const data = await res.json()
-        
-        const images: ReviewImage[] = data.images || []
-        
-        // Shuffle array
-        const shuffled = [...images].sort(() => Math.random() - 0.5)
-        
-        // Target height for the marquee items
-        const TARGET_HEIGHT = 140
+    if (!initialReviews || initialReviews.length === 0) return
 
-        // Add random visual properties and calculate dimensions
-        const processed = shuffled.map(img => {
-          const aspectRatio = (img.width && img.height) ? img.width / img.height : 0.8
-          const width = TARGET_HEIGHT * aspectRatio
+    // Shuffle array
+    const shuffled = [...initialReviews].sort(() => Math.random() - 0.5)
+    
+    // Target height for the marquee items
+    const TARGET_HEIGHT = 140
 
-          return {
-            ...img,
-            renderHeight: TARGET_HEIGHT,
-            renderWidth: width,
-            yOffset: Math.random() * 20 - 10, // Reduced offset for smaller items
-          }
-        })
+    // Add random visual properties and calculate dimensions
+    const processed = shuffled.map(img => {
+      const aspectRatio = (img.width && img.height) ? img.width / img.height : 0.8
+      const width = TARGET_HEIGHT * aspectRatio
 
-        setReviews(processed)
-      } catch (error) {
-        console.error('Error loading reviews:', error)
-      } finally {
-        setLoading(false)
+      return {
+        ...img,
+        renderHeight: TARGET_HEIGHT,
+        renderWidth: width,
+        yOffset: Math.random() * 20 - 10, // Reduced offset for smaller items
       }
-    }
+    })
 
-    fetchReviews()
-  }, [])
+    setReviews(processed)
+  }, [initialReviews])
 
-  if (loading || reviews.length === 0) return null
+  if (reviews.length === 0) return null
 
   // Duplicate content for seamless loop
   const marqueeContent = [...reviews, ...reviews, ...reviews]
