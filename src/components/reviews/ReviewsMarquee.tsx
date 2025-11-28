@@ -28,7 +28,7 @@ export default function ReviewsMarquee() {
         const shuffled = [...images].sort(() => Math.random() - 0.5)
         
         // Target height for the marquee items
-        const TARGET_HEIGHT = 300
+        const TARGET_HEIGHT = 140
 
         // Add random visual properties and calculate dimensions
         const processed = shuffled.map(img => {
@@ -39,7 +39,7 @@ export default function ReviewsMarquee() {
             ...img,
             renderHeight: TARGET_HEIGHT,
             renderWidth: width,
-            yOffset: Math.random() * 60 - 30, // -30px to +30px for masonry effect
+            yOffset: Math.random() * 20 - 10, // Reduced offset for smaller items
           }
         })
 
@@ -90,7 +90,7 @@ export default function ReviewsMarquee() {
               transition: { duration: 0.2 }
             }}
           >
-            <div className="relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300">
+            <div className="relative overflow-hidden rounded-xl border-[3px] border-white dark:border-zinc-700 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-zinc-800">
               <Image
                 src={review.url}
                 alt="Review"
