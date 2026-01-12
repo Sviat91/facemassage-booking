@@ -1,4 +1,4 @@
-# FaceMassage.net
+# salon-booking
 
 Next.js application for face massage booking with GDPR compliance features.
 
